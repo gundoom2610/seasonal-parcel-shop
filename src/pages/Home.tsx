@@ -82,14 +82,14 @@ export const Home = () => {
   return (
     <>
       <SEO
-        title="Lipink Parcel Cirebon - Parcel Lebaran, Imlek, Natal | Banyak Jenis Parcel Makanan & Keramik"
-        description="Parcel Cirebon untuk Lebaran, Imlek, Natal. Banyak jenis parcel makanan premium, parcel keramik cantik, dan hampers eksklusif. Pesan sekarang via WhatsApp!"
+        title="Lipink Parcel Cirebon - Parcel Lebaran, Natal, Imlek Terbaik | Hampers Premium"
+        description="🎁 Parcel premium terbaik di Cirebon untuk Lebaran, Natal, dan Imlek. Banyak pilihan parcel makanan berkualitas, keramik cantik, dan hampers eksklusif. Pesan sekarang via WhatsApp! ✨"
         url="/"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
           "name": "Lipink Parcel Cirebon",
-          "description": "Toko parcel terpercaya di Cirebon untuk berbagai acara spesial",
+          "description": "Toko parcel premium dan hampers terpercaya di Cirebon untuk berbagai acara spesial",
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Cirebon",
@@ -97,136 +97,184 @@ export const Home = () => {
             "addressCountry": "ID"
           },
           "telephone": "+62-xxx-xxxx-xxxx",
-          "url": window.location.origin,
+          "url": typeof window !== 'undefined' ? window.location.origin : '',
           "openingHours": "Mo-Su 08:00-20:00",
-          "priceRange": "$$"
+          "priceRange": "$$-$$$",
+          "image": "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop",
+          "sameAs": [
+            "https://instagram.com/lipinkparcel",
+            "https://facebook.com/lipinkparcel"
+          ]
         }}
       />
       
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-primary-glow/5 to-purple-100/30">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
         {/* Hero Section */}
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-hero opacity-10"></div>
-          <div className="container mx-auto px-4 py-16 relative">
-            <div className="text-center max-w-4xl mx-auto">
-              <div className="animate-fade-in">
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6">
-                  <span className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground font-medium block mb-2">
-                    Parcel Premium
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-primary-glow/5 to-purple-100/20 py-20 lg:py-32">
+          <div className="absolute inset-0 opacity-30"></div>
+          <div className="container mx-auto px-4 relative">
+            <div className="text-center max-w-5xl mx-auto">
+              <div className="animate-slide-up">
+                <div className="inline-flex items-center bg-primary/10 rounded-full px-4 py-2 mb-6">
+                  <span className="text-primary font-medium text-sm">🎁 Parcel Premium Cirebon</span>
+                </div>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 leading-tight">
+                  <span className="font-serif bg-gradient-hero bg-clip-text text-transparent">
+                    Parcel Terbaik
                   </span>
-                  <span className="bg-gradient-hero bg-clip-text text-transparent">
-                    Cirebon
+                  <br />
+                  <span className="text-2xl md:text-4xl lg:text-5xl text-gray-700 font-sans font-medium">
+                    untuk Setiap Momen Spesial
                   </span>
                 </h1>
-                <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8 leading-relaxed">
-                  Parcel premium untuk <span className="text-primary font-semibold">Lebaran</span>, 
-                  <span className="text-primary font-semibold"> Imlek</span>, dan 
-                  <span className="text-primary font-semibold"> Natal</span>. 
-                  Banyak jenis parcel makanan berkualitas dan keramik cantik untuk setiap momen spesial.
+                <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
+                  Hadirkan kebahagiaan dengan parcel premium untuk <span className="text-primary font-semibold">Lebaran</span>, 
+                  <span className="text-primary font-semibold"> Natal</span>, dan 
+                  <span className="text-primary font-semibold"> Imlek</span>. 
+                  Koleksi eksklusif parcel makanan berkualitas tinggi dan keramik cantik.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                   <Button 
                     size="lg" 
-                    className="bg-gradient-primary hover:opacity-90 text-white px-8 py-4 text-lg shadow-elegant rounded-xl font-semibold"
-                    onClick={() => window.open(createWhatsAppUrl('Halo! Saya tertarik dengan parcel dari Lipink Parcel Cirebon. Bisa berikan informasi lebih lanjut?'), '_blank')}
+                    className="bg-gradient-primary hover:opacity-90 text-white px-10 py-4 text-lg shadow-elegant rounded-xl font-semibold group"
+                    onClick={() => window.open(createWhatsAppUrl('🎁 Halo! Saya tertarik dengan parcel premium dari Lipink Parcel Cirebon. Bisa berikan informasi lebih lanjut?'), '_blank')}
                   >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Pesan via WhatsApp
+                    <MessageCircle className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform" />
+                    Pesan Sekarang
                   </Button>
-                  <Button variant="outline" size="lg" className="px-8 py-4 text-lg rounded-xl border-2 border-primary/30 hover:bg-primary/10">
-                    Lihat Katalog
+                  <Button variant="outline" size="lg" className="px-10 py-4 text-lg rounded-xl border-2 border-primary/30 hover:bg-primary/10 font-semibold">
+                    Lihat Katalog Lengkap
                   </Button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trust Indicators */}
+        <section className="py-12 bg-white/70 backdrop-blur-sm">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              <div className="animate-fade-in">
+                <div className="text-3xl font-bold text-primary mb-2">500+</div>
+                <div className="text-gray-600">Pelanggan Puas</div>
+              </div>
+              <div className="animate-fade-in" style={{animationDelay: '0.1s'}}>
+                <div className="text-3xl font-bold text-primary mb-2">50+</div>
+                <div className="text-gray-600">Varian Parcel</div>
+              </div>
+              <div className="animate-fade-in" style={{animationDelay: '0.2s'}}>
+                <div className="text-3xl font-bold text-primary mb-2">3+</div>
+                <div className="text-gray-600">Tahun Pengalaman</div>
+              </div>
+              <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
+                <div className="text-3xl font-bold text-primary mb-2">24/7</div>
+                <div className="text-gray-600">Customer Service</div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Categories Section */}
-        <section className="container mx-auto px-4 py-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-              Pilih Kategori Parcel
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Berbagai pilihan parcel eksklusif untuk setiap momen istimewa
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
-            {categories.map((category, index) => (
-              <Card key={category.id} className={`group hover:shadow-elegant transition-all duration-500 transform hover:-translate-y-3 hover:scale-[1.02] animate-fade-in shadow-soft gradient-card border-0 rounded-2xl overflow-hidden ${index === 1 ? 'md:scale-105' : ''}`}>
-                <CardContent className="p-6 lg:p-8 text-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary-glow/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <div className="relative z-10">
-                    <div className="w-20 h-20 mx-auto mb-6 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                      <ShoppingBag className="h-10 w-10 text-white" />
+        <section className="py-20 bg-gradient-to-r from-primary/5 to-primary-glow/5">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 font-serif bg-gradient-primary bg-clip-text text-transparent">
+                Pilihan Parcel Premium
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Koleksi eksklusif parcel berkualitas tinggi untuk setiap momen berharga dalam hidup Anda
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 max-w-7xl mx-auto">
+              {categories.map((category, index) => (
+                <Card key={category.id} className={`group hover:shadow-elegant transition-all duration-700 transform hover:-translate-y-4 hover:scale-[1.02] animate-fade-in shadow-soft bg-white/80 backdrop-blur-sm border-0 rounded-3xl overflow-hidden ${index === 1 ? 'md:scale-105' : ''}`} style={{animationDelay: `${index * 0.2}s`}}>
+                  <CardContent className="p-8 lg:p-10 text-center relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-primary-glow/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="relative z-10">
+                      <div className="w-24 h-24 mx-auto mb-6 bg-gradient-primary rounded-3xl flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform duration-500 group-hover:rotate-3">
+                        <ShoppingBag className="h-12 w-12 text-white" />
+                      </div>
+                      <h3 className="text-2xl lg:text-3xl font-bold mb-6 text-gray-800 font-serif">{category.name}</h3>
+                      <p className="text-gray-600 mb-8 text-base lg:text-lg leading-relaxed">
+                        {category.slug === 'lebaran' && 'Parcel spesial Idul Fitri dengan kemasan mewah dan isi berkualitas premium untuk merayakan kemenangan'}
+                        {category.slug === 'christmas' && 'Hampers Natal istimewa dengan sentuhan elegan untuk berbagi kebahagiaan bersama keluarga'}
+                        {category.slug === 'lunar-new-year' && 'Parcel Imlek penuh makna dengan simbol keberuntungan untuk tahun yang penuh berkah'}
+                      </p>
+                      <Button asChild className="w-full bg-gradient-primary hover:opacity-90 text-white rounded-2xl py-4 font-semibold shadow-lg group-hover:shadow-xl transition-all duration-300">
+                        <Link to={`/parcel/${category.slug}`}>
+                          <ShoppingBag className="h-5 w-5 mr-2" />
+                          Lihat Koleksi
+                        </Link>
+                      </Button>
                     </div>
-                    <h3 className="text-xl lg:text-2xl font-bold mb-4 text-foreground">{category.name}</h3>
-                    <p className="text-muted-foreground mb-6 text-sm lg:text-base leading-relaxed">
-                      {category.slug === 'lebaran' && 'Parcel spesial untuk merayakan Idul Fitri dengan kemeriahan'}
-                      {category.slug === 'christmas' && 'Hampers Natal istimewa untuk berbagi kebahagiaan'}
-                      {category.slug === 'lunar-new-year' && 'Parcel Imlek penuh berkah untuk tahun yang hoki'}
-                    </p>
-                    <Button asChild className="w-full bg-gradient-primary hover:opacity-90 text-white rounded-xl py-3 font-semibold shadow-lg">
-                      <Link to={`/parcel/${category.slug}`}>
-                        Lihat Produk
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Featured Products */}
-        <section className="container mx-auto px-4 py-16 bg-gradient-to-r from-primary/5 to-primary-glow/5 rounded-3xl mx-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
-              Produk Pilihan
-            </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Koleksi parcel terpopuler dan terlaris dari Lipink Parcel Cirebon
-            </p>
-          </div>
-          {featuredParcels.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-primary rounded-full flex items-center justify-center animate-float">
-                <ShoppingBag className="h-12 w-12 text-white" />
-              </div>
-              <p className="text-muted-foreground text-lg">Produk sedang dalam persiapan...</p>
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 font-serif bg-gradient-primary bg-clip-text text-transparent">
+                Produk Terlaris
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+                Pilihan favorit pelanggan yang telah terbukti memberikan kepuasan maksimal
+              </p>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-              {featuredParcels.map((parcel, index) => (
-                <div key={parcel.id} className="animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <ParcelCard parcel={parcel} />
+            {featuredParcels.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="w-32 h-32 mx-auto mb-8 bg-gradient-primary rounded-full flex items-center justify-center animate-pulse-slow shadow-xl">
+                  <ShoppingBag className="h-16 w-16 text-white" />
                 </div>
-              ))}
-            </div>
-          )}
+                <h3 className="text-2xl font-semibold text-gray-700 mb-4">Koleksi Segera Hadir</h3>
+                <p className="text-gray-500 text-lg">Kami sedang mempersiapkan produk-produk terbaik untuk Anda</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {featuredParcels.map((parcel, index) => (
+                  <div key={parcel.id} className="animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <ParcelCard parcel={parcel} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* CTA Section */}
-        <section className="container mx-auto px-4 py-16 text-center">
-          <div className="bg-gradient-primary rounded-3xl p-12 text-white relative overflow-hidden">
-            <div className="absolute inset-0 bg-black/10 rounded-3xl"></div>
-            <div className="relative z-10">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                Pesan Parcel Istimewa Anda
+        <section className="py-20 bg-gradient-to-br from-primary via-primary-glow to-purple-600 text-white relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center max-w-4xl mx-auto">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 font-serif">
+                Wujudkan Momen Spesial Anda
               </h2>
-              <p className="text-xl mb-8 text-white/90 max-w-2xl mx-auto">
-                Hubungi kami melalui WhatsApp untuk konsultasi dan pemesanan parcel custom sesuai kebutuhan Anda
+              <p className="text-xl mb-10 text-white/90 leading-relaxed">
+                Konsultasi gratis dengan tim ahli kami untuk mendapatkan parcel yang sempurna sesuai kebutuhan dan budget Anda
               </p>
-              <Button 
-                size="lg" 
-                variant="secondary" 
-                className="bg-white text-primary hover:bg-white/90 px-8 py-4 text-lg shadow-elegant rounded-xl font-semibold"
-                onClick={() => window.open(createWhatsAppUrl('Halo! Saya ingin konsultasi untuk pemesanan parcel custom. Bisa dibantu?'), '_blank')}
-              >
-                <MessageCircle className="h-5 w-5 mr-2" />
-                Chat WhatsApp Sekarang
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <Button 
+                  size="lg" 
+                  variant="secondary" 
+                  className="bg-white text-primary hover:bg-white/90 px-10 py-4 text-lg shadow-elegant rounded-xl font-semibold group"
+                  onClick={() => window.open(createWhatsAppUrl('🎁 Halo! Saya ingin konsultasi untuk pemesanan parcel custom. Bisa dibantu?'), '_blank')}
+                >
+                  <MessageCircle className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform" />
+                  Konsultasi Gratis
+                </Button>
+                <Button 
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-white text-white hover:bg-white hover:text-primary px-10 py-4 text-lg rounded-xl font-semibold transition-all duration-300"
+                >
+                  Lihat Portofolio
+                </Button>
+              </div>
             </div>
           </div>
         </section>

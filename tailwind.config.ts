@@ -64,6 +64,10 @@ export default {
 					ring: "hsl(var(--sidebar-ring))",
 				},
 			},
+			fontFamily: {
+				sans: ['Inter', 'system-ui', 'sans-serif'],
+				serif: ['Playfair Display', 'Georgia', 'serif'],
+			},
 			borderRadius: {
 				lg: "var(--radius)",
 				md: "calc(var(--radius) - 2px)",
@@ -82,6 +86,8 @@ export default {
 				float: "float 3s ease-in-out infinite",
 				"fade-in": "fade-in 0.3s ease-out",
 				"scale-in": "scale-in 0.2s ease-out",
+				"slide-up": "slide-up 0.4s ease-out",
+				"pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
 				"accordion-down": "accordion-down 0.2s ease-out",
 				"accordion-up": "accordion-up 0.2s ease-out",
 			},
@@ -103,6 +109,16 @@ export default {
 					},
 					"100%": {
 						transform: "scale(1)",
+						opacity: "1",
+					},
+				},
+				"slide-up": {
+					"0%": {
+						transform: "translateY(20px)",
+						opacity: "0",
+					},
+					"100%": {
+						transform: "translateY(0)",
 						opacity: "1",
 					},
 				},

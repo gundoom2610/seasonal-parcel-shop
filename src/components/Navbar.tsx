@@ -14,32 +14,50 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="bg-gradient-primary backdrop-blur-lg border-b border-white/20 sticky top-0 z-50 shadow-soft">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 text-xl font-bold text-white hover:text-white/90 transition-colors">
-          <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-            <ShoppingBag className="h-6 w-6" />
+    <nav className="bg-white/95 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3 text-2xl font-bold text-primary hover:text-primary/90 transition-colors">
+            <div className="p-2 bg-gradient-primary rounded-xl shadow-lg">
+              <ShoppingBag className="h-6 w-6 text-white" />
+            </div>
+            <span className="font-serif">
+              Lipink Parcel
+            </span>
+          </Link>
+          
+          {/* Navigation Menu */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/" className="text-gray-700 hover:text-primary transition-colors font-medium">
+              Beranda
+            </Link>
+            <Link to="/parcel/lebaran" className="text-gray-700 hover:text-primary transition-colors font-medium">
+              Parcel Lebaran
+            </Link>
+            <Link to="/parcel/christmas" className="text-gray-700 hover:text-primary transition-colors font-medium">
+              Parcel Natal
+            </Link>
+            <Link to="/parcel/lunar-new-year" className="text-gray-700 hover:text-primary transition-colors font-medium">
+              Parcel Imlek
+            </Link>
           </div>
-          <span className="bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
-            Lipink Parcel
-          </span>
-        </Link>
-        
-        <div className="flex items-center gap-3">
-          {user && isAdmin && (
-            <>
-              <Button variant="secondary" asChild className="bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-lg px-4 py-2">
-                <Link to="/admin">Admin Panel</Link>
-              </Button>
-              <div className="hidden sm:flex items-center gap-2 text-sm text-white/80 bg-white/10 px-3 py-2 rounded-lg backdrop-blur-sm">
-                <User className="h-4 w-4" />
-                <span className="max-w-32 truncate">{user.email}</span>
-              </div>
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-white hover:bg-white/20 rounded-lg p-2">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </>
-          )}
+
+          <div className="flex items-center gap-3">
+            {user && isAdmin && (
+              <>
+                <Button variant="outline" asChild className="hidden sm:flex border-primary/30 text-primary hover:bg-primary/10">
+                  <Link to="/admin">Admin Panel</Link>
+                </Button>
+                <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
+                  <User className="h-4 w-4" />
+                  <span className="max-w-32 truncate">{user.email}</span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-gray-600 hover:bg-gray-100 rounded-lg p-2">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>

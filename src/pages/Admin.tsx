@@ -11,8 +11,15 @@ export const Admin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      navigate('/');
+    if (!loading) {
+      if (!user) {
+        navigate('/auth');
+        return;
+      }
+      if (!isAdmin) {
+        navigate('/');
+        return;
+      }
     }
   }, [user, isAdmin, loading, navigate]);
 
