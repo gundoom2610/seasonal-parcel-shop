@@ -44,8 +44,8 @@ export const Admin = () => {
   return (
     <>
       <SEO
-        title="Admin Panel - Seasonal Parcels"
-        description="Manage categories and parcels for the seasonal parcels e-commerce site."
+        title="Admin Panel - Lipink Parcels"
+        description="Manage categories and parcels for Lipink parcels e-commerce site."
         url="/admin"
       />
       

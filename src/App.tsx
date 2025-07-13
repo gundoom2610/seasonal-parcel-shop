@@ -28,8 +28,8 @@ const App = () => (
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<Admin />} />
-              <Route path="/parcel/:categorySlug" element={<CategoryPage />} />
-              <Route path="/parcel/:categorySlug/:parcelSlug" element={<ParcelDetail />} />
+              <Route path="/produk/:categorySlug" element={<CategoryPage />} />
+              <Route path="/produk/:categorySlug/:parcelSlug" element={<ParcelDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

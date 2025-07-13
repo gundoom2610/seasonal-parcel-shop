@@ -97,29 +97,29 @@ export const CategoryPage = () => {
 
   return (
     <>
-      <SEO
-        title={`${category.name} Parcels - Seasonal Gift Boxes`}
-        description={`Browse our collection of premium ${category.name} gift parcels. Perfect for celebrating the season with loved ones.`}
-        url={`/parcel/${category.slug}`}
-      />
-      
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            {category.name} Parcels
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Discover our curated collection of {category.name} gift parcels, 
-            perfect for celebrating this special season.
-          </p>
-        </div>
+    <SEO
+    title={`Parcel ${category.name} - Kado Spesial Musiman`}
+    description={`Lihat koleksi parcel ${category.name} berkualitas kami. Cocok untuk merayakan momen spesial bersama keluarga dan orang tercinta.`}
+    url={`/produk/${category.slug}`}
+    />
 
-        {parcels.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              No products available in this category yet.
-            </p>
-          </div>
+      
+   <div className="container mx-auto px-4 py-8">
+  <div className="text-center mb-12">
+    <h1 className="text-4xl md:text-5xl font-bold mb-4">
+      {category.name}
+    </h1>
+    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+      Jelajahi koleksi {category.name} pilihan kami — dirancang khusus untuk melengkapi momen istimewa Anda.
+    </p>
+  </div>
+
+  {parcels.length === 0 ? (
+    <div className="text-center py-12">
+      <p className="text-muted-foreground">
+        Belum tersedia produk dalam kategori ini.
+      </p>
+    </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {parcels.map((parcel) => (

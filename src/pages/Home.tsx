@@ -5,7 +5,7 @@ import { SEO } from '@/components/SEO';
 import { ParcelCard } from '@/components/ParcelCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ShoppingBag, MessageCircle } from 'lucide-react';
+import { ShoppingBag, MessageCircle, ShoppingCart,Instagram } from 'lucide-react';
 import { createWhatsAppUrl } from '@/constants/whatsapp';
 
 interface Category {
@@ -164,7 +164,7 @@ export const Home = () => {
                 <div className="text-gray-600">Varian Parcel</div>
               </div>
               <div className="animate-fade-in" style={{animationDelay: '0.2s'}}>
-                <div className="text-3xl font-bold text-primary mb-2">3+</div>
+                <div className="text-3xl font-bold text-primary mb-2">5+</div>
                 <div className="text-gray-600">Tahun Pengalaman</div>
               </div>
               <div className="animate-fade-in" style={{animationDelay: '0.3s'}}>
@@ -200,9 +200,10 @@ export const Home = () => {
                         {category.slug === 'lebaran' && 'Parcel spesial Idul Fitri dengan kemasan mewah dan isi berkualitas premium untuk merayakan kemenangan'}
                         {category.slug === 'christmas' && 'Hampers Natal istimewa dengan sentuhan elegan untuk berbagi kebahagiaan bersama keluarga'}
                         {category.slug === 'lunar-new-year' && 'Parcel Imlek penuh makna dengan simbol keberuntungan untuk tahun yang penuh berkah'}
+                        {category.slug === 'set-bekal-anak' && 'Parcel Imlek penuh makna dengan simbol keberuntungan untuk tahun yang penuh berkah'}
                       </p>
                       <Button asChild className="w-full bg-gradient-primary hover:opacity-90 text-white rounded-2xl py-4 font-semibold shadow-lg group-hover:shadow-xl transition-all duration-300">
-                        <Link to={`/parcel/${category.slug}`}>
+                        <Link to={`/produk/${category.slug}`}>
                           <ShoppingBag className="h-5 w-5 mr-2" />
                           Lihat Koleksi
                         </Link>
@@ -246,38 +247,66 @@ export const Home = () => {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-br from-primary via-primary-glow to-purple-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="text-center max-w-4xl mx-auto">
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 font-serif">
-                Wujudkan Momen Spesial Anda
-              </h2>
-              <p className="text-xl mb-10 text-white/90 leading-relaxed">
-                Konsultasi gratis dengan tim ahli kami untuk mendapatkan parcel yang sempurna sesuai kebutuhan dan budget Anda
-              </p>
-              <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                <Button 
-                  size="lg" 
-                  variant="secondary" 
-                  className="bg-white text-primary hover:bg-white/90 px-10 py-4 text-lg shadow-elegant rounded-xl font-semibold group"
-                  onClick={() => window.open(createWhatsAppUrl('🎁 Halo! Saya ingin konsultasi untuk pemesanan parcel custom. Bisa dibantu?'), '_blank')}
-                >
-                  <MessageCircle className="h-6 w-6 mr-3 group-hover:scale-110 transition-transform" />
-                  Konsultasi Gratis
-                </Button>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-white text-white hover:bg-white hover:text-primary px-10 py-4 text-lg rounded-xl font-semibold transition-all duration-300"
-                >
-                  Lihat Portofolio
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
+       {/* CTA Section */}
+<section className="py-20 bg-gradient-to-br from-pink-100 via-pink-200 to-rose-300 text-gray-800 relative overflow-hidden">
+  <div className="absolute inset-0 bg-white/20"></div>
+  <div className="container mx-auto px-4 relative z-10">
+    <div className="text-center max-w-4xl mx-auto">
+      <h2 className="text-4xl md:text-5xl font-bold mb-6 font-serif text-gray-900">
+        Wujudkan Momen Spesial Anda
+      </h2>
+      <p className="text-xl mb-10 text-gray-700 leading-relaxed">
+        Konsultasi gratis dengan tim ahli kami untuk mendapatkan parcel yang sempurna sesuai kebutuhan dan budget Anda
+      </p>
+      
+      {/* Main CTA - WhatsApp (Biggest) */}
+      <div className="mb-8">
+        <Button 
+          size="lg" 
+          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-12 py-6 text-xl shadow-xl rounded-2xl font-bold transform hover:scale-105 transition-all duration-300 group"
+          onClick={() => window.open(createWhatsAppUrl('🎁 Halo! Saya ingin konsultasi untuk pemesanan parcel custom. Bisa dibantu?'), '_blank')}
+        >
+          <MessageCircle className="h-8 w-8 mr-4 group-hover:scale-110 transition-transform" />
+          Konsultasi Gratis via WhatsApp
+        </Button>
+      </div>
+      
+      {/* Secondary CTAs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl mx-auto mb-8">
+        <Button 
+          size="lg"
+          variant="outline"
+          className="border-2 border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white px-6 py-4 text-lg rounded-xl font-semibold transition-all duration-300 group"
+          onClick={() => window.open('https://www.tokopedia.com/', '_blank')}
+        >
+          <ShoppingBag className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+          Tokopedia
+        </Button>
+        
+        <Button 
+          size="lg"
+          variant="outline"
+          className="border-2 border-orange-600 text-orange-700 hover:bg-orange-600 hover:text-white px-6 py-4 text-lg rounded-xl font-semibold transition-all duration-300 group"
+          onClick={() => window.open('https://shopee.co.id/', '_blank')}
+        >
+          <ShoppingCart className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+          Shopee
+        </Button>
+        
+        <Button 
+          size="lg"
+          variant="outline"
+          className="border-2 border-pink-500 text-pink-600 hover:bg-pink-500 hover:text-white px-6 py-4 text-lg rounded-xl font-semibold transition-all duration-300 group"
+          onClick={() => window.open('https://instagram.com/', '_blank')}
+        >
+          <Instagram className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
+          Instagram
+        </Button>
+      </div>
+      
+    </div>
+  </div>
+</section>
       </div>
     </>
   );

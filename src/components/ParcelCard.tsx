@@ -39,7 +39,7 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
   return (
     <Card className="group hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-3 hover:scale-[1.02] shadow-lg bg-white border-0 overflow-hidden rounded-2xl">
       <CardContent className="p-0">
-        <Link to={`/parcel/${parcel.category.slug}/${parcel.slug}`}>
+        <Link to={`/produk/${parcel.category.slug}/${parcel.slug}`}>
           <div className="aspect-[4/3] relative overflow-hidden rounded-t-2xl">
             <img
               src={parcel.image_url || 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=600&fit=crop'}
@@ -68,7 +68,7 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
       
       <CardFooter className="p-6 space-y-5">
         <div className="space-y-4 flex-1">
-          <Link to={`/parcel/${parcel.category.slug}/${parcel.slug}`}>
+          <Link to={`/produk/${parcel.category.slug}/${parcel.slug}`}>
             <h3 className="font-bold text-xl hover:text-primary transition-colors line-clamp-2 leading-tight font-serif">
               {parcel.name}
             </h3>

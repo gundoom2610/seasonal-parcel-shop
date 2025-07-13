@@ -131,13 +131,13 @@ export const ParcelDetail = () => {
         title={`${parcel.name} - ${parcel.category.name} Parcel`}
         description={parcel.description}
         ogImage={parcel.image_url}
-        url={`/parcel/${parcel.category.slug}/${parcel.slug}`}
+        url={`/produk/${parcel.category.slug}/${parcel.slug}`}
         structuredData={getStructuredData()}
       />
       
       <div className="container mx-auto px-4 py-8">
         <Button variant="ghost" asChild className="mb-6">
-          <Link to={`/parcel/${parcel.category.slug}`}>
+          <Link to={`/produk/${parcel.category.slug}`}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to {parcel.category.name}
           </Link>
