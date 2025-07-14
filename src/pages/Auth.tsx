@@ -86,7 +86,7 @@ export const Auth = () => {
   return (
     <>
       <SEO
-        title="Login - Seasonal Parcels"
+        title="Login - Lipink Parcel"
         description="Sign in to your account to access admin features and manage your seasonal parcel orders."
         url="/auth"
       />

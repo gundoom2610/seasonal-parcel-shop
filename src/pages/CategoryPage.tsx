@@ -98,10 +98,11 @@ export const CategoryPage = () => {
   return (
     <>
     <SEO
-    title={`Parcel ${category.name} - Kado Spesial Musiman`}
-    description={`Lihat koleksi parcel ${category.name} berkualitas kami. Cocok untuk merayakan momen spesial bersama keluarga dan orang tercinta.`}
+    title={`${category.name} - Kado Terbaik untuk Momen yang Hangat`}
+    description={`Temukan ${category.name} untuk Lebaran, Imlek, Natal, dan momen spesial. Tersedia hampers berkualitas, berlokasi di Cirebon.`}
     url={`/produk/${category.slug}`}
-    />
+  />
+
 
       
    <div className="container mx-auto px-4 py-8">
