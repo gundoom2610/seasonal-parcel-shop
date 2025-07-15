@@ -43,51 +43,127 @@ export const ParcelDetail = () => {
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
 
-  // Generate random reviews data
   const generateRandomReviews = () => {
-    const sampleNames = [
-      "Siti Nurhaliza", "Budi Santoso", "Maya Sari", "Andi Wijaya", "Rina Kusuma",
-      "Dedy Prakoso", "Lina Hartati", "Rizki Ramadhan", "Dewi Lestari", "Agus Setiawan",
-      "Fitri Handayani", "Wahyu Kurniawan", "Sari Indah", "Tono Sugiarto", "Ani Rahayu"
-    ];
-    
-    const sampleComments = [
-      "Produk sesuai ekspektasi! Kualitas bagus dan pengiriman cepat 👍",
-      "Wah senang banget! Produknya berkualitas dan pelayanan ramah",
-      "Recommended banget! Barang ori dan harga terjangkau",
-      "Mantap jiwa! Kualitas premium dengan harga yang reasonable",
-      "Sudah order berkali-kali, selalu puas dengan produknya",
-      "Packaging rapi, barang sesuai foto. Terima kasih!",
-      "Pelayanan cepat dan barang berkualitas. Pasti order lagi!",
-      "Produk ori dan sesuai deskripsi. Sangat puas!",
-      "Kualitas oke, harga bersahabat. Recommended!",
-      "Barang cepat sampai dan sesuai ekspektasi. Mantap!"
-    ];
+  const sampleNames = [
+    { name: "Siti N.*", gender: "female" },
+    { name: "Budi S.*", gender: "male" },
+    { name: "Maya S.*", gender: "female" },
+    { name: "Andi W.*", gender: "male" },
+    { name: "Rina K.*", gender: "female" },
+    { name: "Dedy P.*", gender: "male" },
+    { name: "Lina H.*", gender: "female" },
+    { name: "Rizki R.*", gender: "male" },
+    { name: "Dewi L.*", gender: "female" },
+    { name: "Agus S.*", gender: "male" },
+    { name: "Fitri H.*", gender: "female" },
+    { name: "Wahyu K.*", gender: "male" },
+    { name: "Sari I.*", gender: "female" },
+    { name: "Tono S.*", gender: "male" },
+    { name: "Ani R.*", gender: "female" },
+    { name: "Yusuf A.*", gender: "male" },
+    { name: "Dina M.*", gender: "female" },
+    { name: "Ilham J.*", gender: "male" },
+    { name: "Nina Z.*", gender: "female" },
+    { name: "Ardi F.*", gender: "male" },
+    { name: "Elsa N.*", gender: "female" },
+    { name: "Reza B.*", gender: "male" },
+    { name: "Tika Y.*", gender: "female" },
+    { name: "Galih C.*", gender: "male" },
+    { name: "Putri D.*", gender: "female" },
+    { name: "Fahmi E.*", gender: "male" },
+    { name: "Mega Q.*", gender: "female" },
+    { name: "Bayu T.*", gender: "male" },
+    { name: "Citra U.*", gender: "female" },
+    { name: "Joko M.*", gender: "male" },
+    { name: "Vina O.*", gender: "female" },
+    { name: "Hendra L.*", gender: "male" },
+    { name: "Ratna G.*", gender: "female" },
+    { name: "Zaki R.*", gender: "male" },
+    { name: "Winda E.*", gender: "female" },
+    { name: "Aldi V.*", gender: "male" },
+    { name: "Melati T.*", gender: "female" },
+    { name: "Rio H.*", gender: "male" },
+    { name: "Yuni S.*", gender: "female" },
+    { name: "Fajar K.*", gender: "male" }
+  ];
 
-    const reviewCount = Math.floor(Math.random() * 36) + 10; // 10-45 reviews
-    const avgRating = (Math.random() * 0.2 + 4.7).toFixed(1); // 4.7-4.9
-    
-    setTotalReviews(reviewCount);
-    setAverageRating(parseFloat(avgRating));
+  const sampleComments = [
+    "Parcel Cirebon sangat rapi, cocok banget untuk kiriman bisnis maupun pribadi.",
+    "Terima kasih! Parcelnya indah, cocok untuk hampers lebaran.",
+    "Bisa request custom, seller sangat membantu. Parcel mewah tapi tetap terjangkau.",
+    "Parcel sudah sampai dengan selamat dan cantik banget packaging-nya!",
+    "Isian lengkap, kemasan eksklusif. Saya pesan lagi untuk natal nanti.",
+    "Sudah beberapa kali order, hasilnya selalu memuaskan!",
+    "Kualitas isiannya premium, dikemas dengan estetika yang tinggi.",
+    "Dikirim ke teman di luar kota, responnya sangat positif.",
+    "Tema parcel bisa disesuaikan, cocok untuk segala momen spesial.",
+    "Barang sesuai gambar, penataan isinya sangat niat!",
+    "Cocok untuk hadiah ultah atau parcel akhir tahun.",
+    "Saya order parcel Imlek, warnanya merah emas sangat elegan.",
+    "Waktu pengiriman cepat dan tepat, aman banget untuk dikirim jauh.",
+    "Seller ramah dan komunikatif, pengalaman belanja menyenangkan.",
+    "Parcelnya eksklusif tapi tetap affordable, sangat direkomendasikan.",
+    "Suka banget sama desain box-nya, unik dan berkelas.",
+    "Isi parcel fresh dan variasinya banyak, cocok untuk hampers keluarga.",
+    "Anak-anak pun senang dapat parcel ini, tampilannya menarik.",
+    "Saya pakai untuk parcel kantor, semua rekan kerja suka!",
+    "Parcel ini sangat berkesan, cocok untuk klien penting.",
+    "Kemasan kuat dan tidak rusak saat diterima.",
+    "Dekorasi isi parcel lucu, cocok untuk hampers anak-anak.",
+    "Pesan untuk mama, beliau sangat senang dan tersentuh.",
+    "Sudah direkomendasikan ke teman-teman karena pelayanannya memuaskan.",
+    "Parcel ini pas banget untuk suasana hangat keluarga.",
+    "Setiap item dalam parcel terlihat berkualitas tinggi.",
+    "Dikirim dari Cirebon ke Jakarta cuma 2 hari, cepat sekali!",
+    "Parcel elegan, cocok buat relasi bisnis premium.",
+    "Beli parcel untuk istri, dia sangat suka! Romantis dan manis.",
+    "Parcel custom dengan tema natal sangat menawan.",
+    "Isiannya pas, nggak ada yang mubazir. Semua bisa dinikmati.",
+    "Seller kasih banyak opsi, tinggal pilih yang sesuai budget.",
+    "Parcel Cirebon terbaik sejauh ini! Rekomendasi nomor satu.",
+    "Kemasannya kaya retail branded, sangat profesional.",
+    "Parcel berkesan banget untuk hari spesial keluarga kami.",
+    "Beli untuk acara pengajian, semua tamu senang.",
+    "Warna, isi, dan tema parcel sangat dipikirkan. Tidak asal-asalan.",
+    "Paling suka karena bisa tulis ucapan di kartu kecil juga.",
+    "Kreatif dan tematik. Parcel yang benar-benar niat dibuat."
+  ];
 
-    const generatedReviews: Review[] = [];
-    for (let i = 0; i < Math.min(reviewCount, 6); i++) { // Show max 6 reviews
-      const rating = Math.random() < 0.7 ? 5 : 4; // 70% chance of 5 stars, 30% chance of 4 stars
-      const randomName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
-      const randomComment = sampleComments[Math.floor(Math.random() * sampleComments.length)];
-      
-      generatedReviews.push({
-        id: `review-${i}`,
-        name: randomName,
-        rating: rating,
-        comment: randomComment,
-        date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID'),
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${randomName.replace(' ', '')}`
-      });
-    }
-    
-    setReviews(generatedReviews);
-  };
+  const reviewCount = Math.floor(Math.random() * 36) + 10; // 10-45
+  const avgRating = (Math.random() * 0.2 + 4.7).toFixed(1); // 4.7 - 4.9
+
+  setTotalReviews(reviewCount);
+  setAverageRating(parseFloat(avgRating));
+
+  const generatedReviews: Review[] = [];
+
+  for (let i = 0; i < Math.min(reviewCount, 6); i++) {
+    const rating = Math.random() < 0.7 ? 5 : 4;
+    const { name, gender } = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+    const comment = sampleComments[Math.floor(Math.random() * sampleComments.length)];
+
+  const seed = encodeURIComponent(name.replace(/\s|\*/g, ''));
+  const headParam = gender === 'male'
+    ? 'short1,short2,short3,short4,short5,shaved1,flatTop,mohawk,cornrows'
+    : 'bun,bun2,buns,long,longCurly,medium1,medium2,medium3,mediumStraight';
+
+  const avatarUrl = `https://api.dicebear.com/9.x/open-peeps/svg?seed=${seed}&head=${headParam}&face=smile,smileBig,calm&facialHairProbability=0&skinColor=ffdbb4,edb98a&hairColor=000000&accessoriesProbability=0&maskProbability=0&radius=50&size=128&clip=true`;
+
+
+
+    generatedReviews.push({
+      id: `review-${i}`,
+      name,
+      rating,
+      comment,
+      date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID'),
+      avatar: avatarUrl
+    });
+  }
+
+  setReviews(generatedReviews);
+};
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -427,7 +503,7 @@ export const ParcelDetail = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="mt-20">
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">⭐ Ulasan Pembeli</h2>
