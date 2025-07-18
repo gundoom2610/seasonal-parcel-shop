@@ -12,3 +12,8 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+User-agent: *
+Allow: /
+
+Sitemap: https://cmcdylnodynsedyyqixi.supabase.co/storage/v1/object/public/public/sitemap.xml

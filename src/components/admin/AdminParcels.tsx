@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Upload } from 'lucide-react';
+import { useSitemap } from '@/hooks/useSitemap';
+import { Plus, Edit, Trash2, Upload, RefreshCw } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -42,7 +43,9 @@ export const AdminParcels = () => {
   const [editingParcel, setEditingParcel] = useState<Parcel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [regeneratingSitemap, setRegeneratingSitemap] = useState(false);
   const { toast } = useToast();
+  const { regenerateSitemap } = useSitemap();
 
   useEffect(() => {
     fetchData();
@@ -158,6 +161,10 @@ export const AdminParcels = () => {
       resetForm();
       setIsDialogOpen(false);
       fetchData();
+      
+      // Auto-regenerate sitemap after successful operation
+      regenerateSitemap(false);
+      
     } catch (error: any) {
       toast({
         title: "Error",
@@ -197,12 +204,25 @@ export const AdminParcels = () => {
       });
       
       fetchData();
+      
+      // Auto-regenerate sitemap after successful deletion
+      regenerateSitemap(false);
+      
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  const handleManualSitemapRegeneration = async () => {
+    setRegeneratingSitemap(true);
+    try {
+      await regenerateSitemap(true);
+    } finally {
+      setRegeneratingSitemap(false);
     }
   };
 
@@ -233,112 +253,122 @@ export const AdminParcels = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Parcels</h2>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Parcel
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingParcel ? 'Edit Parcel' : 'Add New Parcel'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  rows={3}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="price">Price (IDR)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category_id}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="image">Product Image</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="image"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={uploading}
-                  />
-                  <Button type="button" disabled={uploading} variant="outline">
-                    <Upload className="h-4 w-4" />
-                  </Button>
-                </div>
-                {formData.image_url && (
-                  <img 
-                    src={formData.image_url} 
-                    alt="Preview" 
-                    className="w-32 h-32 object-cover rounded"
-                  />
-                )}
-              </div>
-              
-              <Button type="submit" className="w-full">
-                {editingParcel ? 'Update Parcel' : 'Create Parcel'}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleManualSitemapRegeneration}
+            disabled={regeneratingSitemap}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${regeneratingSitemap ? 'animate-spin' : ''}`} />
+            {regeneratingSitemap ? 'Updating...' : 'Update Sitemap'}
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Parcel
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingParcel ? 'Edit Parcel' : 'Add New Parcel'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price (IDR)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select
+                    value={formData.category_id}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="image">Product Image</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                    />
+                    <Button type="button" disabled={uploading} variant="outline">
+                      <Upload className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {formData.image_url && (
+                    <img 
+                      src={formData.image_url} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded"
+                    />
+                  )}
+                </div>
+                
+                <Button type="submit" className="w-full">
+                  {editingParcel ? 'Update Parcel' : 'Create Parcel'}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
