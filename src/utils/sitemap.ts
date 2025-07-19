@@ -25,6 +25,7 @@ interface CategoryData {
   created_at: string;
 }
 
+// Client-side sitemap generation (for preview/development)
 export const generateSitemap = async (): Promise<string> => {
   const domain = import.meta.env.VITE_SITE_URL || 'https://www.parcelcirebon.com';
   
@@ -104,32 +105,39 @@ ${allUrls.map(item => `  <url>
   }
 };
 
-export const saveSitemapToStorage = async (sitemapContent: string): Promise<void> => {
+// Secure sitemap save using Edge Function
+export const saveSitemapToStorage = async (): Promise<void> => {
   try {
-    // Check if user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Get current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
-      throw new Error('User must be authenticated to save sitemap');
+    if (sessionError || !session) {
+      throw new Error('Authentication required to save sitemap');
     }
 
-    console.log('User authenticated:', user.email);
+    console.log('🔄 Calling Edge Function to generate sitemap...');
 
-    // Save to Supabase storage
-    const { error } = await supabase.storage
-      .from('public')
-      .upload('sitemap.xml', new Blob([sitemapContent], { type: 'application/xml' }), {
-        upsert: true,
-        contentType: 'application/xml'
-      });
+    // Call the Edge Function
+    const { data, error } = await supabase.functions.invoke('generate-sitemap', {
+      body: {},
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+        'Content-Type': 'application/json'
+      }
+    });
 
     if (error) {
-      console.error('Error saving sitemap to storage:', error);
+      console.error('Edge function error:', error);
       throw error;
     }
 
-    console.log('✅ Sitemap saved to storage successfully');
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to generate sitemap');
+    }
+
+    console.log('✅ Sitemap generated successfully!');
+    console.log(`📊 Generated ${data.urls_generated} URLs`);
+    
   } catch (error) {
     console.error('Error in saveSitemapToStorage:', error);
     throw error;
@@ -160,16 +168,18 @@ export const saveSitemapToPublic = async (sitemapContent: string): Promise<void>
   }
 };
 
+// Main function to update sitemap
 export const updateSitemap = async (saveToStorage: boolean = true): Promise<void> => {
   try {
     console.log('🔄 Updating sitemap...');
-    const sitemapContent = await generateSitemap();
     
     if (saveToStorage) {
-      await saveSitemapToStorage(sitemapContent);
+      // Use secure Edge Function for production
+      await saveSitemapToStorage();
     } else {
-      // For development, just log the sitemap
-      console.log('Generated sitemap:', sitemapContent);
+      // For development preview only
+      const sitemapContent = await generateSitemap();
+      console.log('Generated sitemap preview:', sitemapContent);
     }
     
     console.log('✅ Sitemap updated successfully');
