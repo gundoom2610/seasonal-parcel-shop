@@ -105,19 +105,19 @@ ${allUrls.map(item => `  <url>
   }
 };
 
-// Secure sitemap save using Edge Function
+// Secure sitemap save using Edge Function (admin auth required)
 export const saveSitemapToStorage = async (): Promise<void> => {
   try {
-    // Get current session
+    // Get current session for admin verification
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError || !session) {
-      throw new Error('Authentication required to save sitemap');
+      throw new Error('Authentication required to generate sitemap');
     }
 
     console.log('🔄 Calling Edge Function to generate sitemap...');
 
-    // Call the Edge Function
+    // Call the Edge Function with authentication
     const { data, error } = await supabase.functions.invoke('generate-sitemap', {
       body: {},
       headers: {
