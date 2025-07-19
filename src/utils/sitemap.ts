@@ -1,3 +1,4 @@
+// utils/sitemap.ts
 import { supabase } from '@/integrations/supabase/client';
 
 interface SitemapUrl {
@@ -11,38 +12,80 @@ interface ProductData {
   slug: string;
   updated_at: string;
   created_at: string;
+  categories?: {
+    slug: string;
+    updated_at: string;
+    created_at: string;
+  };
+}
+
+interface CategoryData {
+  slug: string;
+  updated_at: string;
+  created_at: string;
 }
 
 export const generateSitemap = async (): Promise<string> => {
-  const domain = 'https://parcelcirebon.com';
+  const domain = import.meta.env.VITE_SITE_URL || 'https://yourdomain.com';
   
   // Static routes
   const staticRoutes: SitemapUrl[] = [
     { url: '/', lastmod: new Date().toISOString(), changefreq: 'daily', priority: 1.0 },
+    { url: '/produk', lastmod: new Date().toISOString(), changefreq: 'daily', priority: 0.8 },
   ];
 
   try {
-    // Fetch all products from Supabase
-    const { data: products, error } = await supabase
-      .from('parcels')
+    // Fetch all categories
+    const { data: categories, error: categoriesError } = await supabase
+      .from('categories')
       .select('slug, updated_at, created_at')
       .order('updated_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching products for sitemap:', error);
-      throw error;
+    if (categoriesError) {
+      console.error('Error fetching categories for sitemap:', categoriesError);
+      throw categoriesError;
     }
 
-    // Generate product URLs
-    const productUrls: SitemapUrl[] = (products || []).map((product: ProductData) => ({
-      url: `/${product.slug}`,
-      lastmod: product.updated_at || product.created_at,
+    // Fetch all products with their categories
+    const { data: products, error: productsError } = await supabase
+      .from('parcels')
+      .select(`
+        slug, 
+        updated_at, 
+        created_at,
+        categories (
+          slug,
+          updated_at,
+          created_at
+        )
+      `)
+      .order('updated_at', { ascending: false });
+
+    if (productsError) {
+      console.error('Error fetching products for sitemap:', productsError);
+      throw productsError;
+    }
+
+    // Generate category URLs
+    const categoryUrls: SitemapUrl[] = (categories || []).map((category: CategoryData) => ({
+      url: `/produk/${category.slug}`,
+      lastmod: category.updated_at || category.created_at,
       changefreq: 'weekly',
-      priority: 0.6
+      priority: 0.7
     }));
 
+    // Generate product URLs with proper category/product structure
+    const productUrls: SitemapUrl[] = (products || [])
+      .filter((product: ProductData) => product.categories?.slug) // Only include products with categories
+      .map((product: ProductData) => ({
+        url: `/produk/${product.categories!.slug}/${product.slug}`,
+        lastmod: product.updated_at || product.created_at,
+        changefreq: 'weekly',
+        priority: 0.6
+      }));
+
     // Combine all URLs
-    const allUrls = [...staticRoutes, ...productUrls];
+    const allUrls = [...staticRoutes, ...categoryUrls, ...productUrls];
 
     // Generate XML sitemap
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
