@@ -26,12 +26,11 @@ interface CategoryData {
 }
 
 export const generateSitemap = async (): Promise<string> => {
-  const domain = import.meta.env.VITE_SITE_URL || 'https://yourdomain.com';
+  const domain = import.meta.env.VITE_SITE_URL || 'https://www.parcelcirebon.com';
   
   // Static routes
   const staticRoutes: SitemapUrl[] = [
     { url: '/', lastmod: new Date().toISOString(), changefreq: 'daily', priority: 1.0 },
-    { url: '/produk', lastmod: new Date().toISOString(), changefreq: 'daily', priority: 0.8 },
   ];
 
   try {
@@ -107,6 +106,16 @@ ${allUrls.map(item => `  <url>
 
 export const saveSitemapToStorage = async (sitemapContent: string): Promise<void> => {
   try {
+    // Check if user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
+      throw new Error('User must be authenticated to save sitemap');
+    }
+
+    console.log('User authenticated:', user.email);
+
     // Save to Supabase storage
     const { error } = await supabase.storage
       .from('public')
