@@ -5,7 +5,7 @@ import { Link } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { SEO } from "@/components/SEO"
 import { ParcelCard } from "@/components/ParcelCard"
-import { Footer } from "@/components/footer"
+import { Footer } from "@/components/Footer"
 import { Button } from "@/components/ui/button"
 import {
   ShoppingBag,
