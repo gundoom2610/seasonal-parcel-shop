@@ -149,8 +149,6 @@ export const ParcelDetail = () => {
 
   const avatarUrl = `https://api.dicebear.com/9.x/open-peeps/svg?seed=${seed}&head=${headParam}&face=smile,smileBig,calm&facialHairProbability=0&skinColor=ffdbb4,edb98a&hairColor=000000&accessoriesProbability=0&maskProbability=0&radius=50&size=128&clip=true`;
 
-
-
     generatedReviews.push({
       id: `review-${i}`,
       name,
@@ -163,7 +161,6 @@ export const ParcelDetail = () => {
 
   setReviews(generatedReviews);
 };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -230,8 +227,11 @@ export const ParcelDetail = () => {
   const handleWhatsAppOrder = () => {
     if (!parcel) return;
     
-    const message = `Halo kak! 👋 Saya tertarik dengan produk ${parcel.name} seharga ${formatPrice(parcel.price)}. Bisa info lebih detail dan cara pemesanannya? Terima kasih! 🙏`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    const message = `Halo saya mau pesan parcel "${parcel.name}"`;
+    const imageUrl = parcel.image_url || '/placeholder.svg';
+    
+    // For mobile WhatsApp, we'll use the web.whatsapp.com link with message and image
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}%0A%0A${encodeURIComponent(window.location.href)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -357,7 +357,7 @@ export const ParcelDetail = () => {
       />
       
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pb-24 md:pb-8">
           {/* Navigation */}
           <div className="mb-8">
             <Button variant="ghost" asChild className="text-slate-600 hover:text-slate-900 hover:bg-white/50">
@@ -472,8 +472,8 @@ export const ParcelDetail = () => {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-4">
+              {/* Action Buttons - Hidden on Mobile */}
+              <div className="space-y-4 hidden md:block">
                 <div className="flex gap-3">
                   <Button 
                     onClick={handleWhatsAppOrder}
@@ -617,6 +617,26 @@ export const ParcelDetail = () => {
               </div>
             </div>
           )}
+        </div>
+        
+        {/* Sticky Bottom Button for Mobile */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-2xl md:hidden z-50">
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <div className="text-xs text-slate-500 mb-1">Harga</div>
+              <div className="text-lg font-bold text-pink-600">
+                {formatPrice(parcel.price)}
+              </div>
+            </div>
+            <Button 
+              onClick={handleWhatsAppOrder}
+              size="lg"
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg font-bold px-8"
+            >
+              <MessageCircle className="h-5 w-5 mr-2" />
+              Order Sekarang
+            </Button>
+          </div>
         </div>
       </div>
     </>

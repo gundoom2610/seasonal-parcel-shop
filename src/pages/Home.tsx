@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
@@ -22,7 +21,7 @@ import {
 } from "lucide-react"
 import { createWhatsAppUrl } from "@/constants/whatsapp"
 
-// Advanced SEO Configuration - Easy to customize
+// Advanced SEO Configuration - Updated without free shipping and same day delivery
 const SEO_CONFIG = {
   // Business Information
   business: {
@@ -34,7 +33,6 @@ const SEO_CONFIG = {
     foundedYear: "2019",
     employeeCount: "10-50",
   },
-
   // Contact & Location
   contact: {
     phone: "+62 812-3456-7890",
@@ -42,7 +40,6 @@ const SEO_CONFIG = {
     email: "hello@lipinkparcel.com",
     website: "https://lipinkparcel.com",
   },
-
   address: {
     street: "Jl. Raya Cirebon No. 123",
     city: "Cirebon",
@@ -51,29 +48,27 @@ const SEO_CONFIG = {
     country: "Indonesia",
     countryCode: "ID",
   },
-
-  // Service Areas
+  // Service Areas - Updated delivery times
   serviceAreas: [
     {
       name: "Cirebon",
       type: "primary",
-      deliveryTime: "Same Day",
+      deliveryTime: "1-2 Hari",
       wikidata: "https://www.wikidata.org/wiki/Q10467",
     },
     {
       name: "Majalengka",
       type: "secondary",
-      deliveryTime: "1-2 Hari",
+      deliveryTime: "2-3 Hari",
       wikidata: "https://www.wikidata.org/wiki/Q10467",
     },
     {
       name: "Indramayu",
       type: "secondary",
-      deliveryTime: "1-2 Hari",
+      deliveryTime: "2-3 Hari",
       wikidata: "https://www.wikidata.org/wiki/Q10467",
     },
   ],
-
   // Business Hours
   hours: {
     monday: "08:00-20:00",
@@ -85,7 +80,6 @@ const SEO_CONFIG = {
     sunday: "08:00-20:00",
     timezone: "Asia/Jakarta",
   },
-
   // Social Media
   social: {
     instagram: "https://instagram.com/lipinkparcel",
@@ -96,7 +90,6 @@ const SEO_CONFIG = {
     tiktok: "https://tiktok.com/@lipinkparcel",
     youtube: "https://youtube.com/@lipinkparcel",
   },
-
   // Business Metrics
   metrics: {
     rating: 4.8,
@@ -106,16 +99,13 @@ const SEO_CONFIG = {
     productCount: 50, // Will be updated dynamically
     categoryCount: 6, // Will be updated dynamically
   },
-
-  // Pricing
+  // Pricing - Removed free shipping
   pricing: {
     currency: "IDR",
     minPrice: 50000,
     maxPrice: 2000000,
-    freeShippingMin: 500000,
     priceRange: "Rp 50.000 - Rp 2.000.000",
   },
-
   // SEO Keywords
   keywords: {
     primary: ["parcel cirebon", "hampers cirebon", "parcel premium cirebon"],
@@ -124,7 +114,6 @@ const SEO_CONFIG = {
     occasions: ["parcel lebaran", "hampers natal", "parcel imlek", "hampers ulang tahun"],
     products: ["parcel makanan", "hampers premium", "parcel keramik", "hampers eksklusif"],
   },
-
   // Content
   content: {
     heroTitle: "Parcel Cirebon Premium",
@@ -132,11 +121,10 @@ const SEO_CONFIG = {
     heroDescription: "Hadirkan kebahagiaan dengan parcel premium berkualitas tinggi untuk Lebaran, Natal, dan Imlek",
     trustBadges: [
       { text: "Garansi Kualitas 100%", icon: "shield" },
-      { text: "Same Day Delivery Cirebon", icon: "truck" },
+      { text: "Pengiriman Terpercaya", icon: "truck" },
       { text: "Customer Service 24/7", icon: "clock" },
     ],
   },
-
   // Category Descriptions
   categoryDescriptions: {
     lebaran:
@@ -266,7 +254,6 @@ export const Home = () => {
         const totalProducts = categoriesWithParcels.reduce((acc, cat) => acc + (cat.parcels?.length || 0), 0)
         SEO_CONFIG.metrics.categoryCount = categoriesWithParcels.length
         SEO_CONFIG.metrics.productCount = totalProducts
-
         setProductsLoaded(true)
       } catch (error) {
         console.error("Error fetching data:", error)
@@ -426,7 +413,6 @@ export const Home = () => {
         keywords={seoData.keywords}
         structuredData={seoData.structuredData}
       />
-
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
         {/* Enhanced Hero Section with Rich Snippets */}
         <section className="relative overflow-hidden py-16 md:py-24 lg:py-32">
@@ -471,11 +457,6 @@ export const Home = () => {
                       Pengiriman ke {SEO_CONFIG.serviceAreas.map((area) => area.name).join(", ")}
                     </span>{" "}
                     •
-                    <span className="text-green-600 font-semibold">
-                      {" "}
-                      Gratis Ongkir min. Rp{SEO_CONFIG.pricing.freeShippingMin.toLocaleString("id-ID")}
-                    </span>{" "}
-                    •
                     <span className="text-blue-600 font-semibold">
                       {" "}
                       {SEO_CONFIG.serviceAreas[0].deliveryTime} {SEO_CONFIG.serviceAreas[0].name}
@@ -508,18 +489,18 @@ export const Home = () => {
                 <div className="flex justify-center">
                   <Button
                     size="lg"
-                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 md:px-12 py-4 md:py-6 text-base md:text-xl shadow-2xl rounded-2xl font-bold group transform hover:scale-105 transition-all duration-300"
+                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6 md:px-12 py-4 md:py-6 text-sm md:text-xl shadow-2xl rounded-2xl font-bold group transform hover:scale-105 transition-all duration-300"
                     onClick={() =>
                       window.open(
                         createWhatsAppUrl(
-                          `🎁 Halo! Saya tertarik dengan parcel premium dari ${SEO_CONFIG.business.name}. Saya ingin melihat katalog ${totalProducts}+ produk terbaik Anda. Bisa berikan informasi lebih lanjut?`,
+                          `🎁 Halo! Saya tertarik dengan parcel premium dari ${SEO_CONFIG.business.name}. Saya ingin mendapatkan harga terbaik untuk produk Anda. Bisa berikan informasi lebih lanjut?`,
                         ),
                         "_blank",
                       )
                     }
                   >
-                    <MessageCircle className="h-5 h-5 md:h-6 md:w-6 mr-3 group-hover:scale-110 transition-transform" />
-                    Konsultasi Gratis via WhatsApp
+                    <MessageCircle className="h-4 h-4 md:h-6 md:w-6 mr-2 md:mr-3 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm md:text-xl">Kontak Kami untuk mendapatkan harga terbaik!</span>
                   </Button>
                 </div>
               </div>
@@ -566,7 +547,7 @@ export const Home = () => {
           </div>
         </section>
 
-        {/* Enhanced Categories Section with Products */}
+        {/* Categories Section */}
         <section className="py-16 md:py-20" itemScope itemType="https://schema.org/ItemList">
           <div className="container mx-auto px-4">
             <div className="text-center mb-12 md:mb-16">
@@ -586,24 +567,13 @@ export const Home = () => {
             </div>
 
             {categoriesLoading ? (
-              <div className="space-y-16">
-                {Array.from({ length: 3 }).map((_, catIndex) => (
-                  <div key={catIndex} className="space-y-6">
-                    <div className="h-8 bg-pink-200 rounded-xl w-64 mx-auto animate-pulse"></div>
-                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
-                      {Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="bg-white/70 rounded-3xl shadow-lg overflow-hidden animate-pulse">
-                          <div className="bg-gradient-to-br from-pink-200 to-purple-300 aspect-square"></div>
-                          <div className="p-3 md:p-6 space-y-2 md:space-y-4">
-                            <div className="h-4 md:h-6 bg-pink-200 rounded-xl"></div>
-                            <div className="h-3 md:h-4 bg-pink-200 rounded-lg w-3/4"></div>
-                            <div className="flex justify-between items-center">
-                              <div className="h-4 md:h-6 bg-pink-200 rounded-xl w-1/2"></div>
-                              <div className="h-6 md:h-10 bg-pink-200 rounded-full w-8 md:w-12"></div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="bg-white/70 rounded-3xl shadow-lg overflow-hidden animate-pulse">
+                    <div className="bg-gradient-to-br from-pink-200 to-purple-300 aspect-square"></div>
+                    <div className="p-3 md:p-6 space-y-2 md:space-y-4">
+                      <div className="h-4 md:h-6 bg-pink-200 rounded-xl"></div>
+                      <div className="h-3 md:h-4 bg-pink-200 rounded-lg w-3/4"></div>
                     </div>
                   </div>
                 ))}
@@ -619,116 +589,75 @@ export const Home = () => {
                 </p>
               </div>
             ) : (
-              <div className="space-y-16 md:space-y-20">
-                {categories.map((category, categoryIndex) => (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
+                {categories.map((category, index) => (
                   <div
                     key={category.id}
-                    className="space-y-6 md:space-y-8"
+                    className="animate-fade-in group bg-white/80 backdrop-blur-sm rounded-2xl md:rounded-3xl shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300 overflow-hidden"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                     itemScope
                     itemType="https://schema.org/Product"
                     itemProp="itemListElement"
                   >
-                    {/* Category Header */}
-                    <div className="text-center">
+                    <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 relative overflow-hidden">
+                      {category.image_url ? (
+                        <img
+                          src={category.image_url || "/placeholder.svg"}
+                          alt={category.name}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          itemProp="image"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package className="w-12 h-12 md:w-16 md:h-16 text-pink-400" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 md:p-6">
                       <h3
-                        className="text-2xl md:text-3xl lg:text-4xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent"
+                        className="text-sm md:text-lg font-bold mb-2 text-gray-800 group-hover:text-pink-600 transition-colors"
                         itemProp="name"
                       >
                         {category.name}
                       </h3>
-                      <p
-                        className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto leading-relaxed px-4"
-                        itemProp="description"
-                      >
+                      <p className="text-xs md:text-sm text-gray-600 leading-relaxed mb-3" itemProp="description">
                         {category.description ||
                           SEO_CONFIG.categoryDescriptions[
                             category.slug as keyof typeof SEO_CONFIG.categoryDescriptions
                           ] ||
-                          `${SEO_CONFIG.categoryDescriptions.default} dengan ${category.parcels?.length || 0} pilihan produk berkualitas`}
+                          SEO_CONFIG.categoryDescriptions.default}
                       </p>
+                      <Link
+                        to={`/produk/${category.slug}`}
+                        className="inline-flex items-center text-xs md:text-sm font-semibold text-pink-600 hover:text-purple-600 transition-colors"
+                      >
+                        Lihat Produk
+                        <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      </Link>
                     </div>
-
-                    {/* Products Grid */}
-                    {category.parcels && category.parcels.length > 0 ? (
-                      <>
-                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
-                          {category.parcels.map((parcel, index) => (
-                            <div
-                              key={parcel.id}
-                              className="animate-fade-in group"
-                              style={{ animationDelay: `${index * 0.1}s` }}
-                            >
-                              <ParcelCard parcel={parcel} />
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* View Category Button */}
-                        <div className="text-center pt-4 md:pt-6">
-                          <Button
-                            variant="outline"
-                            size="lg"
-                            className="border-2 border-pink-300 text-pink-600 hover:bg-pink-500 hover:text-white px-6 md:px-10 py-3 md:py-4 text-sm md:text-lg rounded-xl md:rounded-2xl font-semibold transition-all duration-300 group bg-transparent shadow-lg hover:shadow-xl"
-                            asChild
-                          >
-                            <Link to={`/produk/${category.slug}`}>
-                              Lihat {category.name} Lengkap
-                              <ArrowRight className="h-4 h-4 md:h-5 md:w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                          </Button>
-                        </div>
-                      </>
-                    ) : !productsLoaded ? (
-                      // Loading state for products
-                      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                          <div key={i} className="bg-white/70 rounded-3xl shadow-lg overflow-hidden animate-pulse">
-                            <div className="bg-gradient-to-br from-pink-200 to-purple-300 aspect-square"></div>
-                            <div className="p-3 md:p-6 space-y-2 md:space-y-4">
-                              <div className="h-4 md:h-6 bg-pink-200 rounded-xl"></div>
-                              <div className="h-3 md:h-4 bg-pink-200 rounded-lg w-3/4"></div>
-                              <div className="flex justify-between items-center">
-                                <div className="h-4 md:h-6 bg-pink-200 rounded-xl w-1/2"></div>
-                                <div className="h-6 md:h-10 bg-pink-200 rounded-full w-8 md:w-12"></div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12 md:py-16 bg-white/50 backdrop-blur-sm rounded-2xl border border-pink-100">
-                        <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 md:mb-6 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
-                          <Package className="h-8 h-8 md:h-10 md:w-10 text-white" />
-                        </div>
-                        <h4 className="text-lg md:text-xl font-semibold text-gray-700 mb-2">Produk Segera Hadir</h4>
-                        <p className="text-sm md:text-base text-gray-500">
-                          Kami sedang mempersiapkan produk {category.name} terbaik untuk Anda
-                        </p>
-                      </div>
-                    )}
                   </div>
                 ))}
-
-                {/* View All Categories Button */}
-                <div className="text-center pt-8 md:pt-12">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-purple-300 text-purple-600 hover:bg-purple-500 hover:text-white px-8 md:px-12 py-4 md:py-6 text-base md:text-xl rounded-xl md:rounded-2xl font-bold transition-all duration-300 group bg-transparent shadow-xl hover:shadow-2xl transform hover:scale-105"
-                    asChild
-                  >
-                    <Link to="/kategori">
-                      Jelajahi Semua Kategori ({totalCategories})
-                      <ArrowRight className="h-5 h-5 md:h-6 md:w-6 ml-3 group-hover:translate-x-2 transition-transform" />
-                    </Link>
-                  </Button>
-                </div>
               </div>
             )}
+
+            {/* View All Categories Button */}
+            <div className="text-center pt-8 md:pt-12">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-purple-300 text-purple-600 hover:bg-purple-500 hover:text-white px-8 md:px-12 py-4 md:py-6 text-base md:text-xl rounded-xl md:rounded-2xl font-bold transition-all duration-300 group bg-transparent shadow-xl hover:shadow-2xl transform hover:scale-105"
+                asChild
+              >
+                <Link to="/kategori">
+                  Jelajahi Semua Kategori ({totalCategories})
+                  <ArrowRight className="h-5 h-5 md:h-6 md:w-6 ml-3 group-hover:translate-x-2 transition-transform" />
+                </Link>
+              </Button>
+            </div>
           </div>
         </section>
 
-        {/* Enhanced Featured Products */}
+        {/* Enhanced Featured Products - Produk Terlaris */}
         <section
           className="py-16 md:py-20 bg-white/50 backdrop-blur-sm"
           itemScope
@@ -763,7 +692,7 @@ export const Home = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12">
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12">
                   {featuredParcels.slice(0, 8).map((parcel, index) => (
                     <div
                       key={parcel.id}
@@ -836,13 +765,12 @@ export const Home = () => {
                   <Truck className="h-8 h-8 md:h-10 md:w-10 text-white" />
                 </div>
                 <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800" itemProp="name">
-                  Pengiriman Express
+                  Pengiriman Terpercaya
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 leading-relaxed" itemProp="description">
                   {SEO_CONFIG.serviceAreas[0].deliveryTime} {SEO_CONFIG.serviceAreas[0].name},{" "}
                   {SEO_CONFIG.serviceAreas[1].deliveryTime} {SEO_CONFIG.serviceAreas[1].name} &{" "}
-                  {SEO_CONFIG.serviceAreas[2].name}. Gratis ongkir min. Rp
-                  {SEO_CONFIG.pricing.freeShippingMin.toLocaleString("id-ID")}
+                  {SEO_CONFIG.serviceAreas[2].name} dengan layanan pengiriman yang dapat diandalkan
                 </p>
               </div>
 
@@ -882,7 +810,6 @@ export const Home = () => {
           </div>
         </section>
       </div>
-
       <Footer />
     </>
   )
