@@ -461,7 +461,7 @@ export const Home = () => {
                       Parcel Premium Cirebon
                     </span>
                     <span className="text-lg text-gray-700 font-medium block mt-1">
-                      {totalProducts}+ Produk untuk Momen Istimewa
+                      50+ Produk untuk Momen Istimewa
                     </span>
                   </h1>
 
@@ -914,21 +914,6 @@ export const Home = () => {
                       <ParcelCard parcel={parcel} />
                     </div>
                   ))}
-                </div>
-
-                {/* View All Products Button */}
-                <div className="text-center">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-purple-300 text-purple-600 hover:bg-purple-500 hover:text-white px-12 py-4 text-lg rounded-2xl font-semibold transition-all duration-300 group bg-transparent shadow-lg hover:shadow-xl"
-                    asChild
-                  >
-                    <Link to="/produk">
-                      Lihat Semua {totalProducts}+ Produk
-                      <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                  </Button>
                 </div>
               </>
             )}
