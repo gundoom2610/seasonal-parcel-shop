@@ -5,7 +5,8 @@ interface SEOProps {
   description: string;
   keywords?: string;
   url: string;
-  image?: string;
+  image?: string;   // Primary image prop
+  ogImage?: string; // Alias often used in other components
   type?: 'website' | 'article' | 'product';
   structuredData?: object;
   canonical?: string;
@@ -20,7 +21,8 @@ export const SEO = ({
   description,
   keywords,
   url,
-  image = "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=1200&h=630&fit=crop&auto=format",
+  image,
+  ogImage,
   type = 'website',
   structuredData,
   canonical,
@@ -32,6 +34,15 @@ export const SEO = ({
   const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://lipinkparcel.com';
   const fullUrl = `${siteUrl}${url}`;
   const canonicalUrl = canonical || fullUrl;
+
+  // --- IMAGE LOGIC FIX ---
+  // 1. Use 'image' prop first
+  // 2. If missing, use 'ogImage' prop (alias)
+  // 3. If both missing, use default Unsplash
+  const rawImage = image || ogImage || "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=1200&h=630&fit=crop&auto=format";
+  
+  // Ensure image URL is absolute (Open Graph requires absolute URLs)
+  const finalImage = rawImage.startsWith('http') ? rawImage : `${siteUrl}${rawImage}`;
 
   // Default structured data for local business
   const defaultStructuredData = {
@@ -50,15 +61,15 @@ export const SEO = ({
           "width": 300,
           "height": 300
         },
-        "image": image,
-        "telephone": "+62-xxx-xxxx-xxxx",
-        "email": "info@lipinkparcel.com",
+        "image": finalImage, // Use calculated image
+        "telephone": "+62-812-2220-8580",
+        "email": "hello@lipinkparcel.com",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "Jl. Raya Cirebon",
+          "streetAddress": "Jl. Garuda No.4, Pekiringan",
           "addressLocality": "Cirebon",
           "addressRegion": "Jawa Barat",
-          "postalCode": "45111",
+          "postalCode": "45131",
           "addressCountry": "ID"
         },
         "geo": {
@@ -76,47 +87,16 @@ export const SEO = ({
         },
         "aggregateRating": {
           "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "reviewCount": "500",
+          "ratingValue": "4.9",
+          "reviewCount": "1200",
           "bestRating": "5",
           "worstRating": "1"
         },
         "sameAs": [
-          "https://instagram.com/lipinkparcel",
-          "https://facebook.com/lipinkparcel",
-          "https://www.tokopedia.com/lipinkparcel",
-          "https://shopee.co.id/lipinkparcel"
-        ],
-        "hasOfferCatalog": {
-          "@type": "OfferCatalog",
-          "name": "Parcel dan Hampers",
-          "itemListElement": [
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Parcel Lebaran Premium",
-                "category": "Gift Hampers"
-              }
-            },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Parcel Natal Eksklusif",
-                "category": "Gift Hampers"
-              }
-            },
-            {
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Product",
-                "name": "Parcel Imlek Spesial",
-                "category": "Gift Hampers"
-              }
-            }
-          ]
-        }
+          "https://instagram.com/lipink2003",
+          "https://shopee.co.id/lipink2003",
+          "https://www.tokopedia.com/giftland"
+        ]
       },
       {
         "@type": "WebSite",
@@ -126,11 +106,6 @@ export const SEO = ({
         "description": description,
         "publisher": {
           "@id": `${siteUrl}/#organization`
-        },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": `${siteUrl}/search?q={search_term_string}`,
-          "query-input": "required name=search_term_string"
         }
       },
       {
@@ -147,7 +122,7 @@ export const SEO = ({
         },
         "primaryImageOfPage": {
           "@type": "ImageObject",
-          "url": image
+          "url": finalImage
         },
         "datePublished": publishedTime || new Date().toISOString(),
         "dateModified": modifiedTime || new Date().toISOString(),
@@ -174,12 +149,16 @@ export const SEO = ({
       <meta name="robots" content={noindex ? "noindex,nofollow" : "index,follow"} />
       <meta name="googlebot" content={noindex ? "noindex,nofollow" : "index,follow"} />
       
-      {/* Open Graph Meta Tags */}
+      {/* Open Graph Meta Tags (Facebook, WhatsApp, LinkedIn) */}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
       <meta property="og:url" content={fullUrl} />
-      <meta property="og:image" content={image} />
+      
+      {/* --- THE FIX: Using finalImage here --- */}
+      <meta property="og:image" content={finalImage} />
+      <meta property="og:image:secure_url" content={finalImage} />
+      
       <meta property="og:image:alt" content={title} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
@@ -190,67 +169,19 @@ export const SEO = ({
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={image} />
+      
+      {/* --- THE FIX: Using finalImage here --- */}
+      <meta name="twitter:image" content={finalImage} />
       <meta name="twitter:image:alt" content={title} />
-      <meta name="twitter:site" content="@lipinkparcel" />
-      <meta name="twitter:creator" content="@lipinkparcel" />
-      
-      {/* Additional Meta Tags for Local SEO */}
-      <meta name="geo.region" content="ID-JB" />
-      <meta name="geo.placename" content="Cirebon" />
-      <meta name="geo.position" content="-6.7063;108.5492" />
-      <meta name="ICBM" content="-6.7063, 108.5492" />
-      
-      {/* Mobile and Viewport */}
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-      <meta name="format-detection" content="telephone=yes" />
       
       {/* Theme and Brand Colors */}
       <meta name="theme-color" content="#ec4899" />
       <meta name="msapplication-TileColor" content="#ec4899" />
-      <meta name="msapplication-navbutton-color" content="#ec4899" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      
-      {/* Language and Content */}
-      <meta httpEquiv="content-language" content="id" />
-      <meta httpEquiv="content-type" content="text/html; charset=utf-8" />
-      
-      {/* Additional Article Meta Tags */}
-      {type === 'article' && (
-        <>
-          {publishedTime && <meta property="article:published_time" content={publishedTime} />}
-          {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
-          <meta property="article:author" content={author} />
-          <meta property="article:section" content="Parcel dan Hampers" />
-          <meta property="article:tag" content="parcel cirebon, hampers, gift" />
-        </>
-      )}
       
       {/* Structured Data */}
       <script type="application/ld+json">
         {JSON.stringify(finalStructuredData)}
       </script>
-      
-      {/* Preconnect for Performance */}
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="preconnect" href="https://images.unsplash.com" />
-      <link rel="dns-prefetch" href="https://api.whatsapp.com" />
-      
-      {/* Favicon and App Icons */}
-      <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-      <link rel="manifest" href="/manifest.json" />
-      
-      {/* Security Headers */}
-      <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-      <meta httpEquiv="X-Frame-Options" content="DENY" />
-      <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
-      
-      {/* Performance Hints */}
-      <link rel="preload" href="/fonts/primary-font.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
     </Helmet>
   );
 };
