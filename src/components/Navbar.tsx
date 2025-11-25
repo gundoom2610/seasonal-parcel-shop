@@ -1,126 +1,89 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingBag, User, LogOut, Menu, X, ChevronDown } from 'lucide-react';
+import { 
+  ShoppingBag, 
+  Menu, 
+  X, 
+  ChevronDown, 
+  Sparkles,
+  Search,
+  Phone,
+  HelpCircle
+} from 'lucide-react';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
-// Cache configuration
+// --- 1. CACHE MANAGER (Performance Optimization) ---
 const CACHE_CONFIG = {
   key: 'navbar_categories_cache',
   version: '1.0',
-  ttl: 24 * 60 * 60 * 1000, // 24 hours
+  ttl: 24 * 60 * 60 * 1000, // 24 Hours
   maxItems: 20
 };
 
-// Advanced cache manager with versioning and TTL
 class CacheManager {
-  static getCacheKey() {
-    return `${CACHE_CONFIG.key}_v${CACHE_CONFIG.version}`;
-  }
-
-  static isExpired(timestamp) {
-    return Date.now() - timestamp > CACHE_CONFIG.ttl;
-  }
-
+  static getCacheKey() { return `${CACHE_CONFIG.key}_v${CACHE_CONFIG.version}`; }
+  static isExpired(timestamp: number) { return Date.now() - timestamp > CACHE_CONFIG.ttl; }
+  
   static get() {
     try {
       const cached = localStorage.getItem(this.getCacheKey());
       if (!cached) return null;
-
       const { data, timestamp, version } = JSON.parse(cached);
-      
-      // Check version compatibility and expiration
       if (version !== CACHE_CONFIG.version || this.isExpired(timestamp)) {
         this.clear();
         return null;
       }
-
       return data;
     } catch (error) {
-      console.warn('Cache read error:', error);
       this.clear();
       return null;
     }
   }
 
-  static set(data) {
+  static set(data: any) {
     try {
       const cacheData = {
-        data: data.slice(0, CACHE_CONFIG.maxItems), // Limit cache size
+        data: data.slice(0, CACHE_CONFIG.maxItems),
         timestamp: Date.now(),
         version: CACHE_CONFIG.version
       };
-      
       localStorage.setItem(this.getCacheKey(), JSON.stringify(cacheData));
       return true;
-    } catch (error) {
-      console.warn('Cache write error:', error);
-      // Handle quota exceeded
-      if (error.name === 'QuotaExceededError') {
-        this.clear();
-      }
-      return false;
-    }
+    } catch (error) { return false; }
   }
 
-  static clear() {
-    try {
-      localStorage.removeItem(this.getCacheKey());
-    } catch (error) {
-      console.warn('Cache clear error:', error);
-    }
-  }
-
-  static invalidate() {
-    this.clear();
-  }
+  static clear() { try { localStorage.removeItem(this.getCacheKey()); } catch (error) {} }
 }
 
-// Advanced categories hook with intelligent caching
+// --- 2. DATA HOOK ---
 const useCategories = () => {
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [lastFetch, setLastFetch] = useState(null);
   const fetchingRef = useRef(false);
   const mountedRef = useRef(true);
 
-  // Smart cache-first data fetching
-  const fetchCategories = useCallback(async (forceRefresh = false) => {
-    if (fetchingRef.current && !forceRefresh) return;
-    
+  const fetchCategories = useCallback(async () => {
+    if (fetchingRef.current) return;
     try {
       fetchingRef.current = true;
-
-      // Try cache first (unless forcing refresh)
-      if (!forceRefresh) {
-        const cachedData = CacheManager.get();
-        if (cachedData && mountedRef.current) {
-          setCategories(cachedData);
-          setLoading(false);
-          setLastFetch(Date.now());
-          
-          // Background refresh if cache is getting old (> 6 hours)
-          const cached = localStorage.getItem(CacheManager.getCacheKey());
-          if (cached) {
-            const { timestamp } = JSON.parse(cached);
-            const isStale = Date.now() - timestamp > 6 * 60 * 60 * 1000; // 6 hours
-            
-            if (isStale) {
-              // Fetch fresh data in background
-              setTimeout(() => fetchCategories(true), 100);
-            }
-          }
-          return;
-        }
+      
+      // Try Cache First
+      const cachedData = CacheManager.get();
+      if (cachedData && mountedRef.current) {
+        setCategories(cachedData);
+        setLoading(false);
+        // Continue to fetch fresh data in background if needed, or just return
+        // For now, we return to rely on cache for speed
+        return;
       }
 
-      // Fetch from database with optimized query
+      // Fetch from DB
       const { data, error: fetchError } = await supabase
         .from('categories')
-        .select('id, name, slug, updated_at')
-        .order('created_at')
+        .select('id, name, slug')
+        .order('name', { ascending: true }) // Alphabetical order is usually better for UX
         .limit(CACHE_CONFIG.maxItems);
 
       if (fetchError) throw fetchError;
@@ -128,413 +91,287 @@ const useCategories = () => {
       if (mountedRef.current) {
         const cleanData = data || [];
         setCategories(cleanData);
-        setError(null);
         setLoading(false);
-        setLastFetch(Date.now());
-        
-        // Cache the fresh data
         CacheManager.set(cleanData);
       }
-
     } catch (err) {
-      console.error('Error fetching categories:', err);
+      console.error("Navbar Error:", err);
       if (mountedRef.current) {
-        setError(err);
         setLoading(false);
-        
-        // Fallback to cache if fetch fails
+        // Fallback to cache on error
         const cachedData = CacheManager.get();
-        if (cachedData) {
-          setCategories(cachedData);
-        }
+        if (cachedData) setCategories(cachedData);
       }
     } finally {
       fetchingRef.current = false;
     }
   }, []);
 
-  // Optimistic updates for real-time changes
-  const handleRealtimeUpdate = useCallback((payload) => {
-    if (!mountedRef.current) return;
-
-    setCategories(prev => {
-      let updated = [...prev];
-      
-      switch (payload.eventType) {
-        case 'INSERT': {
-          const exists = updated.find(cat => cat.id === payload.new.id);
-          if (!exists && updated.length < CACHE_CONFIG.maxItems) {
-            updated.push(payload.new);
-            updated = updated.slice(0, CACHE_CONFIG.maxItems);
-          }
-          break;
-        }
-          
-        case 'UPDATE': {
-          const updateIndex = updated.findIndex(cat => cat.id === payload.new.id);
-          if (updateIndex !== -1) {
-            updated[updateIndex] = { ...updated[updateIndex], ...payload.new };
-          }
-          break;
-        }
-          
-        case 'DELETE': {
-          updated = updated.filter(cat => cat.id !== payload.old.id);
-          break;
-        }
-      }
-      
-      // Update cache with new data
-      CacheManager.set(updated);
-      return updated;
-    });
-  }, []);
-
   useEffect(() => {
-    mountedRef.current = true;
-    
-    // Initial fetch
     fetchCategories();
-
-    // Set up optimized real-time subscription
-    const channel = supabase
-      .channel('navbar-categories-optimized', {
-        config: {
-          broadcast: { self: false }, // Don't receive own changes
-          presence: { key: 'navbar' }
-        }
-      })
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'categories'
-        },
-        handleRealtimeUpdate
-      )
-      .subscribe();
-
-    // Periodic cache validation (every 30 minutes when tab is active)
-    const validateCache = () => {
-      if (document.hidden) return; // Skip if tab is hidden
-      
-      const timeSinceLastFetch = Date.now() - (lastFetch || 0);
-      if (timeSinceLastFetch > 30 * 60 * 1000) { // 30 minutes
-        fetchCategories(true);
-      }
-    };
-
-    const intervalId = setInterval(validateCache, 30 * 60 * 1000);
-
-    // Listen for visibility change to refresh when tab becomes active
-    const handleVisibilityChange = () => {
-      if (!document.hidden && lastFetch) {
-        const timeSinceLastFetch = Date.now() - lastFetch;
-        if (timeSinceLastFetch > 60 * 60 * 1000) { // 1 hour
-          fetchCategories(true);
-        }
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    // Network status listener for smart refetching
-    const handleOnline = () => {
-      if (error || categories.length === 0) {
-        fetchCategories(true);
-      }
-    };
-
-    window.addEventListener('online', handleOnline);
-
-    return () => {
-      mountedRef.current = false;
-      clearInterval(intervalId);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('online', handleOnline);
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [fetchCategories, handleRealtimeUpdate, lastFetch, error, categories.length]);
-
-  // Force refresh function
-  const refreshCategories = useCallback(() => {
-    fetchCategories(true);
+    return () => { mountedRef.current = false; };
   }, [fetchCategories]);
 
-  return { 
-    categories, 
-    loading, 
-    error, 
-    refresh: refreshCategories,
-    lastFetch 
-  };
+  return { categories, loading };
 };
 
+// --- 3. MAIN NAVBAR COMPONENT ---
 export const Navbar = () => {
-  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const { categories, loading, error } = useCategories();
+  const [searchParams] = useSearchParams(); 
+  
+  // DATA FETCHING (Enabled)
+  const { categories, loading } = useCategories();
+
+  // UI STATES
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Memoized category splits with error fallback
-  const { displayCategories, dropdownCategories, hasCategories } = useMemo(() => {
-    if (!categories?.length) {
-      return { 
-        displayCategories: [], 
-        dropdownCategories: [], 
-        hasCategories: false 
-      };
-    }
-    
+  // --- EFFECTS ---
+
+  // Sync search input with URL
+  useEffect(() => {
+    setSearchQuery(searchParams.get("q") || "");
+  }, [searchParams]);
+
+  // Handle Scroll Effect (Glassmorphism)
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle Click Outside Dropdown
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen]);
+
+  // Split Categories for Desktop (5 visible, rest in dropdown)
+  const { visibleCategories, hiddenCategories } = useMemo(() => {
+    if (!categories?.length) return { visibleCategories: [], hiddenCategories: [] };
     return {
-      displayCategories: categories.slice(0, 5),
-      dropdownCategories: categories.slice(5, 15),
-      hasCategories: true
+      visibleCategories: categories.slice(0, 5),
+      hiddenCategories: categories.slice(5),
     };
   }, [categories]);
 
-  // Optimized outside click handler
-  useEffect(() => {
-    if (!dropdownOpen) return;
+  // --- HANDLERS ---
 
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current?.contains(event.target)) return;
-      setDropdownOpen(false);
-    };
-
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('mousedown', handleClickOutside);
-    }, 0);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [dropdownOpen]);
-
-  // Memoized handlers
-  const handleSignOut = useCallback(async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate('/');
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
-  }, [navigate]);
-
-  const toggleMobileMenu = useCallback(() => {
-    setMobileMenuOpen(prev => !prev);
-  }, []);
-
-  const closeMobileMenu = useCallback(() => {
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
     setMobileMenuOpen(false);
-  }, []);
+    if (searchQuery.trim()) {
+      navigate(`/?q=${encodeURIComponent(searchQuery)}`);
+    } else {
+      navigate('/');
+    }
+  };
 
-  const toggleDropdown = useCallback(() => {
-    setDropdownOpen(prev => !prev);
-  }, []);
+  // --- RENDER HELPERS ---
 
-  const closeDropdown = useCallback(() => {
-    setDropdownOpen(false);
-  }, []);
-
-  // Enhanced loading skeleton
   const CategorySkeleton = () => (
-    <div className="flex space-x-8">
-      {[...Array(4)].map((_, i) => (
-        <div 
-          key={i} 
-          className="h-4 bg-gray-200 rounded animate-pulse"
-          style={{ 
-            width: `${60 + Math.random() * 40}px`,
-            animationDelay: `${i * 100}ms`
-          }}
-        />
-      ))}
+    <div className="flex gap-4 animate-pulse">
+      <div className="h-4 w-16 bg-slate-200 rounded" />
+      <div className="h-4 w-20 bg-slate-200 rounded" />
+      <div className="h-4 w-14 bg-slate-200 rounded" />
     </div>
   );
 
   return (
-    <nav className="bg-white/95 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link 
-            to="/" 
-            className="flex items-center gap-3 text-2xl font-bold text-primary hover:text-primary/90 transition-colors"
-            onClick={closeMobileMenu}
-          >
-            <div className="p-2 bg-gradient-primary rounded-xl shadow-lg">
-              <ShoppingBag className="h-6 w-6 text-white" />
-            </div>
-            <span className="font-serif">Lipink Parcel</span>
-          </Link>
+    <>
+      <nav 
+        className={`sticky top-0 z-50 transition-all duration-300 border-b ${
+          isScrolled 
+            ? "bg-white/90 backdrop-blur-lg border-pink-100 shadow-sm" 
+            : "bg-white border-transparent"
+        }`}
+      >
+        <div className="container mx-auto px-4 py-3 md:py-4 relative">
           
-          {/* Desktop Navigation Menu */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-primary transition-colors font-medium">
-              Beranda
-            </Link>
+          {/* TOP ROW: Logo, Desktop Search, Mobile Toggle */}
+          <div className="flex items-center justify-between gap-4 md:gap-8">
             
-            {loading ? (
-              <CategorySkeleton />
-            ) : error ? (
-              <span className="text-gray-400 text-sm">Kategori tidak tersedia</span>
-            ) : (
-              <>
-                {displayCategories.map((category) => (
-                  <Link 
-                    key={category.id}
-                    to={`/produk/${category.slug}`} 
-                    className="text-gray-700 hover:text-primary transition-colors font-medium"
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-
-                {dropdownCategories.length > 0 && (
-                  <div className="relative" ref={dropdownRef}>
-                    <button
-                      onClick={toggleDropdown}
-                      className="flex items-center gap-1 text-gray-700 hover:text-primary transition-colors font-medium"
-                      aria-expanded={dropdownOpen}
-                      aria-haspopup="true"
-                    >
-                      Produk Lainnya
-                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    
-                    {dropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200/50 py-2 z-50 animate-in fade-in-0 zoom-in-95 duration-200">
-                        {dropdownCategories.map((category) => (
-                          <Link
-                            key={category.id}
-                            to={`/produk/${category.slug}`}
-                            className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-gray-50 transition-colors"
-                            onClick={closeDropdown}
-                          >
-                            {category.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Desktop User Menu */}
-          <div className="hidden md:flex items-center gap-3">
-            {user && isAdmin && (
-              <>
-                <Button variant="outline" asChild className="border-primary/30 text-primary hover:bg-primary/10">
-                  <Link to="/admin">Admin Panel</Link>
-                </Button>
-                <div className="hidden lg:flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
-                  <User className="h-4 w-4" />
-                  <span className="max-w-32 truncate">{user.email}</span>
-                </div>
-                <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-gray-600 hover:bg-gray-100 rounded-lg p-2">
-                  <LogOut className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-2">
-            {user && isAdmin && (
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-gray-600 hover:bg-gray-100 rounded-lg p-2">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMobileMenu}
-              className="text-gray-600 hover:bg-gray-100 rounded-lg p-2"
-              aria-expanded={mobileMenuOpen}
-              aria-label="Toggle mobile menu"
+            {/* 1. LOGO */}
+            <Link 
+              to="/" 
+              className="flex items-center gap-2 flex-shrink-0 group select-none" 
+              onClick={() => {
+                setSearchQuery(""); 
+                setMobileMenuOpen(false);
+              }}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </div>
-        </div>
+              <div className="relative p-2 rounded-xl bg-gradient-to-br from-pink-50 to-purple-50 border border-pink-100 group-hover:shadow-md transition-all duration-300">
+                  <ShoppingBag className="h-6 w-6 text-pink-600" />
+                  <Sparkles className="absolute -top-1 -right-1 h-3.5 w-3.5 text-yellow-400 fill-yellow-400 animate-pulse" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">
+                  Lipink<span className="text-pink-600">.</span>
+                </span>
+                <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">
+                  Parcel & Hampers
+                </span>
+              </div>
+            </Link>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200/50">
-            <div className="flex flex-col space-y-4 pt-4">
-              <Link 
-                to="/" 
-                className="text-gray-700 hover:text-primary transition-colors font-medium px-2 py-1"
-                onClick={closeMobileMenu}
-              >
-                Beranda
-              </Link>
-              
+            {/* 2. DESKTOP SEARCH BAR */}
+            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-xl relative group">
+              <div className="relative w-full">
+                <Input 
+                  type="text"
+                  placeholder="Cari parcel lebaran, imlek..." 
+                  className="w-full pl-11 pr-4 h-11 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-300 focus:ring-4 focus:ring-pink-50 rounded-2xl transition-all duration-300"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-pink-500 transition-colors" />
+              </div>
+            </form>
+
+            {/* 3. DESKTOP CATEGORIES (Horizontal List) */}
+            <div className="hidden md:flex items-center gap-1">
               {loading ? (
-                <div className="px-2 space-y-2">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="h-4 bg-gray-200 rounded animate-pulse" style={{ width: `${60 + i * 20}%` }} />
-                  ))}
-                </div>
-              ) : error ? (
-                <span className="text-gray-400 text-sm px-2">Kategori tidak tersedia</span>
+                <CategorySkeleton />
               ) : (
                 <>
-                  {displayCategories.map((category) => (
-                    <Link 
+                  {visibleCategories.map((category: any) => (
+                    <Link
                       key={category.id}
-                      to={`/produk/${category.slug}`} 
-                      className="text-gray-700 hover:text-primary transition-colors font-medium px-2 py-1"
-                      onClick={closeMobileMenu}
+                      to={`/produk/${category.slug}`}
+                      className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition-all duration-200"
                     >
                       {category.name}
                     </Link>
                   ))}
 
-                  {dropdownCategories.length > 0 && (
-                    <>
-                      <div className="text-gray-500 font-medium px-2 py-1 text-sm border-t border-gray-200/50 pt-4 mt-2">
-                        Produk Lainnya
+                  {/* Dropdown for extra categories */}
+                  {hiddenCategories.length > 0 && (
+                    <div className="relative" ref={dropdownRef}>
+                      <button 
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                        className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                          dropdownOpen ? 'text-pink-600 bg-pink-50' : 'text-slate-600 hover:text-pink-600 hover:bg-pink-50'
+                        }`}
+                      >
+                        Lainnya <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+                      
+                      {/* Dropdown Menu */}
+                      <div 
+                        className={`absolute top-full right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-pink-100 p-2 z-50 transform transition-all duration-200 origin-top-right ${
+                          dropdownOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                        }`}
+                      >
+                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                          {hiddenCategories.map((cat: any) => (
+                            <Link 
+                              key={cat.id} 
+                              to={`/produk/${cat.slug}`} 
+                              className="block px-4 py-2.5 text-sm text-slate-600 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors"
+                              onClick={() => setDropdownOpen(false)}
+                            >
+                              {cat.name}
+                            </Link>
+                          ))}
+                        </div>
                       </div>
-                      {dropdownCategories.map((category) => (
-                        <Link 
-                          key={category.id}
-                          to={`/produk/${category.slug}`} 
-                          className="text-gray-700 hover:text-primary transition-colors font-medium px-4 py-1 text-sm"
-                          onClick={closeMobileMenu}
-                        >
-                          {category.name}
-                        </Link>
-                      ))}
-                    </>
+                    </div>
                   )}
                 </>
               )}
-              
-              {user && isAdmin && (
-                <div className="border-t border-gray-200/50 pt-4 mt-4">
-                  <Button variant="outline" asChild className="w-full border-primary/30 text-primary hover:bg-primary/10 mb-3">
-                    <Link to="/admin" onClick={closeMobileMenu}>Admin Panel</Link>
-                  </Button>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg">
-                    <User className="h-4 w-4" />
-                    <span className="truncate">{user.email}</span>
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* 4. MOBILE HAMBURGER */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden text-slate-700 hover:bg-pink-50 hover:text-pink-600 rounded-xl"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
           </div>
-        )}
-      </div>
-    </nav>
+
+          {/* MOBILE SEARCH BAR (Below Logo) */}
+          <div className="mt-4 md:hidden">
+             <form onSubmit={handleSearch} className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input 
+                   placeholder="Cari produk..." 
+                   className="w-full pl-10 h-10 bg-slate-50 border-slate-200 focus:bg-white focus:border-pink-300 rounded-xl"
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                />
+             </form>
+          </div>
+        </div>
+      </nav>
+
+      {/* --- MOBILE FULL SCREEN MENU --- */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 top-[120px] z-40 bg-white/95 backdrop-blur-sm border-t border-slate-100 overflow-y-auto animate-in slide-in-from-top-5 duration-200">
+          <div className="p-4 pb-20 space-y-6">
+            
+            {/* 1. Categories Grid */}
+            <div>
+               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Kategori Produk</h3>
+               
+               {loading ? (
+                  <div className="grid grid-cols-2 gap-3">
+                     {[1,2,3,4].map(i => <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse" />)}
+                  </div>
+               ) : (
+                 <div className="grid grid-cols-2 gap-3">
+                    {categories.map((category: any) => (
+                       <Link
+                         key={category.id}
+                         to={`/produk/${category.slug}`}
+                         className="flex items-center justify-center px-4 py-3 bg-slate-50 hover:bg-pink-50 border border-slate-100 hover:border-pink-200 rounded-xl transition-all active:scale-95"
+                         onClick={() => setMobileMenuOpen(false)}
+                       >
+                         <span className="text-sm font-medium text-slate-700 text-center line-clamp-1">
+                           {category.name}
+                         </span>
+                       </Link>
+                    ))}
+                 </div>
+               )}
+            </div>
+
+            {/* 2. Help / Contact Section */}
+            <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+               <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-white rounded-full text-blue-600 shadow-sm">
+                     <HelpCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                     <h4 className="font-bold text-slate-800 text-sm">Butuh Bantuan?</h4>
+                     <p className="text-xs text-slate-500">Admin kami siap membantu</p>
+                  </div>
+               </div>
+               <a 
+                 href="https://wa.me/628122208580" 
+                 target="_blank"
+                 rel="noreferrer"
+                 className="flex items-center justify-center gap-2 w-full bg-white text-blue-600 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-blue-600 hover:text-white transition-all mt-2"
+               >
+                 <Phone className="w-4 h-4" /> Hubungi Kami
+               </a>
+            </div>
+
+          </div>
+        </div>
+      )}
+    </>
   );
 };

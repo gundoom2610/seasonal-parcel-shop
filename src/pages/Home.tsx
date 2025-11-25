@@ -1,151 +1,39 @@
 "use client"
+
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { SEO } from "@/components/SEO"
 import { ParcelCard } from "@/components/ParcelCard"
 import { Footer } from "@/components/Footer"
 import { Button } from "@/components/ui/button"
 import {
-  ShoppingBag,
   MessageCircle,
-  ArrowRight,
-  Shield,
-  Truck,
-  Heart,
-  Gift,
-  Package,
   Star,
-  Clock,
-  Award,
-  ChevronDown,
-  Filter,
+  TrendingUp,
+  ChevronRight,
+  Sparkles,
   Search,
+  PackageX
 } from "lucide-react"
 import { createWhatsAppUrl } from "@/constants/whatsapp"
 
-// Advanced SEO Configuration - Updated without free shipping and same day delivery
+// --- SEO CONFIGURATION ---
 const SEO_CONFIG = {
-  // Business Information
   business: {
     name: "Lipink Parcel Cirebon",
-    legalName: "CV. Lipink Parcel Indonesia",
-    description:
-      "Toko parcel dan hampers premium terpercaya di Cirebon dengan kualitas terbaik untuk berbagai acara spesial seperti Lebaran, Natal, dan Imlek",
-    tagline: "Parcel Premium untuk Setiap Momen Istimewa",
-    foundedYear: "2019",
-    employeeCount: "10-50",
+    description: "Pusat Parcel & Hampers Terlengkap di Cirebon. Menyediakan parcel Lebaran, Natal, Imlek, dan Kado Spesial.",
+    tagline: "Kirim Kebahagiaan, Sambung Silaturahmi",
   },
-  // Contact & Location
-  contact: {
-    phone: "+62 812-3456-7890",
-    whatsapp: "+62 812-3456-7890",
-    email: "hello@lipinkparcel.com",
-    website: "https://lipinkparcel.com",
-  },
-  address: {
-    street: "Jl. Raya Cirebon No. 123",
-    city: "Cirebon",
-    state: "Jawa Barat",
-    postalCode: "45111",
-    country: "Indonesia",
-    countryCode: "ID",
-  },
-  // Service Areas - Updated delivery times
-  serviceAreas: [
-    {
-      name: "Cirebon",
-      type: "primary",
-      deliveryTime: "1-2 Hari",
-      wikidata: "https://www.wikidata.org/wiki/Q10467",
-    },
-    {
-      name: "Majalengka",
-      type: "secondary",
-      deliveryTime: "2-3 Hari",
-      wikidata: "https://www.wikidata.org/wiki/Q10467",
-    },
-    {
-      name: "Indramayu",
-      type: "secondary",
-      deliveryTime: "2-3 Hari",
-      wikidata: "https://www.wikidata.org/wiki/Q10467",
-    },
-  ],
-  // Business Hours
-  hours: {
-    monday: "08:00-20:00",
-    tuesday: "08:00-20:00",
-    wednesday: "08:00-20:00",
-    thursday: "08:00-20:00",
-    friday: "08:00-20:00",
-    saturday: "08:00-20:00",
-    sunday: "08:00-20:00",
-    timezone: "Asia/Jakarta",
-  },
-  // Social Media
-  social: {
-    instagram: "https://instagram.com/lipinkparcel",
-    facebook: "https://facebook.com/lipinkparcel",
-    whatsapp: "https://wa.me/6281234567890",
-    tokopedia: "https://tokopedia.com/lipinkparcel",
-    shopee: "https://shopee.co.id/lipinkparcel",
-    tiktok: "https://tiktok.com/@lipinkparcel",
-    youtube: "https://youtube.com/@lipinkparcel",
-  },
-  // Business Metrics
-  metrics: {
-    rating: 4.8,
-    reviewCount: 500,
-    customerCount: 1000,
-    experienceYears: 5,
-    productCount: 50, // Will be updated dynamically
-    categoryCount: 6, // Will be updated dynamically
-  },
-  // Pricing - Removed free shipping
-  pricing: {
-    currency: "IDR",
-    minPrice: 50000,
-    maxPrice: 2000000,
-    priceRange: "Rp 50.000 - Rp 2.000.000",
-  },
-  // SEO Keywords
-  keywords: {
-    primary: ["parcel cirebon", "hampers cirebon", "parcel premium cirebon"],
-    secondary: ["parcel lebaran cirebon", "parcel natal cirebon", "parcel imlek cirebon"],
-    local: ["parcel majalengka", "parcel indramayu", "hampers jawa barat"],
-    occasions: ["parcel lebaran", "hampers natal", "parcel imlek", "hampers ulang tahun"],
-    products: ["parcel makanan", "hampers premium", "parcel keramik", "hampers eksklusif"],
-  },
-  // Content
-  content: {
-    heroTitle: "Parcel Cirebon Premium",
-    heroSubtitle: "untuk Setiap Momen Istimewa",
-    heroDescription: "Hadirkan kebahagiaan dengan parcel premium berkualitas tinggi untuk Lebaran, Natal, dan Imlek",
-    trustBadges: [
-      { text: "Garansi Kualitas 100%", icon: "shield" },
-      { text: "Pengiriman Terpercaya", icon: "truck" },
-      { text: "Customer Service 24/7", icon: "clock" },
-    ],
-  },
-  // Category Descriptions
-  categoryDescriptions: {
-    lebaran:
-      "Koleksi parcel spesial Idul Fitri dengan kemasan mewah dan isi berkualitas premium untuk merayakan kemenangan",
-    christmas: "Hampers Natal istimewa dengan sentuhan elegan untuk berbagi kebahagiaan bersama keluarga",
-    "lunar-new-year": "Parcel Imlek penuh makna dengan simbol keberuntungan untuk tahun yang penuh berkah",
-    "set-bekal-anak": "Parcel bekal anak dengan produk berkualitas dan kemasan menarik untuk si kecil",
-    default: "Koleksi produk premium untuk momen istimewa Anda",
-  },
+  metrics: { rating: 4.9, reviewCount: 1200 },
 }
 
+// --- TYPES ---
 interface Category {
   id: string
   name: string
   slug: string
   description?: string
-  image_url?: string
-  updated_at: string
   parcels?: Parcel[]
 }
 
@@ -156,882 +44,377 @@ interface Parcel {
   description: string
   image_url: string
   price: number
-  category: {
-    id: string
-    name: string
-    slug: string
-  }
+  category: { id: string; name: string; slug: string }
   rating?: number
   reviews_count?: number
   created_at?: string
 }
 
+// --- HELPER: Get Emoji based on Category Name ---
+const getCategoryEmoji = (name: string) => {
+  const lower = name.toLowerCase()
+  if (lower.includes('lebaran') || lower.includes('idul') || lower.includes('fitri')) return '🕌'
+  if (lower.includes('natal') || lower.includes('christmas')) return '🎄'
+  if (lower.includes('imlek') || lower.includes('chinese')) return '🧧'
+  if (lower.includes('bayi') || lower.includes('baby') || lower.includes('lahiran')) return '👶'
+  if (lower.includes('makanan') || lower.includes('food') || lower.includes('snack')) return '🍪'
+  if (lower.includes('pecah') || lower.includes('belah') || lower.includes('keramik')) return '🍽️'
+  if (lower.includes('buah') || lower.includes('fruit')) return '🍎'
+  if (lower.includes('sembako')) return '🍚'
+  if (lower.includes('ulang') || lower.includes('ultah') || lower.includes('birthday')) return '🎂'
+  if (lower.includes('corporate') || lower.includes('kantor')) return '🏢'
+  if (lower.includes('wedding') || lower.includes('nikah')) return '💍'
+  return '🎁'
+}
+
+// --- HELPER: Category Styling ---
+const getCategoryStyle = (index: number) => {
+  const styles = [
+    { bg: "bg-pink-100", border: "border-pink-200" },
+    { bg: "bg-blue-100", border: "border-blue-200" },
+    { bg: "bg-green-100", border: "border-green-200" },
+    { bg: "bg-purple-100", border: "border-purple-200" },
+    { bg: "bg-orange-100", border: "border-orange-200" },
+    { bg: "bg-teal-100", border: "border-teal-200" },
+  ]
+  return styles[index % styles.length]
+}
+
 export const Home = () => {
+  // --- STATE ---
+  const [searchParams, setSearchParams] = useSearchParams()
+  const searchQuery = searchParams.get("q") || ""
+
+  // Data States
   const [categories, setCategories] = useState<Category[]>([])
   const [categoriesWithParcels, setCategoriesWithParcels] = useState<Category[]>([])
   const [featuredParcels, setFeaturedParcels] = useState<Parcel[]>([])
-  const [filteredParcels, setFilteredParcels] = useState<Parcel[]>([])
-  const [selectedCategory, setSelectedCategory] = useState<string>("semua")
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  
+  // Search State
+  const [searchResults, setSearchResults] = useState<Parcel[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  
   const [loading, setLoading] = useState(true)
-  const [categoriesLoading, setCategoriesLoading] = useState(true)
-  const [productsLoaded, setProductsLoaded] = useState(false)
 
+  // --- DATA FETCHING ---
   useEffect(() => {
-    // Scroll to top when component loads
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    })
-
     const fetchData = async () => {
       try {
-        // Phase 1: Load page structure first (categories only)
         setLoading(true)
-        setCategoriesLoading(true)
 
-        // Fetch categories first for immediate page render
-        const { data: categoriesData, error: categoryError } = await supabase
-          .from("categories")
-          .select("*")
-          .order("updated_at", { ascending: false })
-          .limit(6)
+        // -------------------------------------------
+        // 1. SEARCH MODE
+        // -------------------------------------------
+        if (searchQuery) {
+          setIsSearching(true)
+          
+          const { data: searchData, error } = await supabase
+            .from("parcels")
+            .select(`*, category:categories(id, name, slug)`)
+            .ilike('name', `%${searchQuery}%`) // Search by name (case insensitive)
+            .order("created_at", { ascending: false })
 
-        if (categoryError) {
-          console.error("Error fetching categories:", categoryError)
-          setCategoriesLoading(false)
+          if (error) throw error
+          if (searchData) setSearchResults(searchData)
+          
           setLoading(false)
-          return
+          return // Stop execution (don't fetch homepage data)
         }
 
-        // Set categories immediately (without products) to render page structure
-        const categoriesWithoutProducts = (categoriesData || []).map((category) => ({
-          ...category,
-          parcels: [], // Empty initially
-        }))
+        // -------------------------------------------
+        // 2. NORMAL HOMEPAGE MODE
+        // -------------------------------------------
+        setIsSearching(false)
 
-        setCategories(categoriesWithoutProducts)
-        setLoading(false) // Page can render now
-        setCategoriesLoading(false)
+        // A. Fetch Categories
+        const { data: categoriesData } = await supabase
+          .from("categories")
+          .select("*")
+          .order("name", { ascending: true })
 
-        // Phase 2: Fetch featured products (for "Produk Terlaris" section)
+        if (categoriesData) setCategories(categoriesData)
+
+        // B. Fetch Featured (Top 10)
         const { data: featuredData } = await supabase
           .from("parcels")
-          .select(`
-            *,
-            category:categories(id, name, slug)
-          `)
-          .limit(24) // Increased to show more products
+          .select(`*, category:categories(id, name, slug)`)
+          .limit(10)
           .order("created_at", { ascending: false })
 
-        setFeaturedParcels(featuredData || [])
-        setFilteredParcels(featuredData || [])
+        if (featuredData) setFeaturedParcels(featuredData)
 
-        // Phase 3: Fetch products for each category (10 products per category)
-        const categoriesWithParcels = await Promise.all(
-          (categoriesData || []).map(async (category) => {
-            const { data: parcelsData } = await supabase
-              .from("parcels")
-              .select(`
-                id,
-                name,
-                slug,
-                description,
-                image_url,
-                price,
-                rating,
-                reviews_count,
-                created_at,
-                category:categories(id, name, slug)
-              `)
-              .eq("category_id", category.id)
-              .order("created_at", { ascending: false })
-              .limit(10) // Changed from 4 to 10
+        // C. Fetch Products grouped by Category
+        if (categoriesData) {
+          const catsWithProducts = await Promise.all(
+            categoriesData.map(async (category) => {
+              const { data: pData } = await supabase
+                .from("parcels")
+                .select(`*, category:categories(id, name, slug)`)
+                .eq("category_id", category.id)
+                .order("created_at", { ascending: false })
+                .limit(10) 
+              return { ...category, parcels: pData || [] }
+            })
+          )
+          setCategoriesWithParcels(catsWithProducts.filter(c => c.parcels && c.parcels.length > 0))
+        }
 
-            return {
-              ...category,
-              parcels: parcelsData || [],
-            }
-          }),
-        )
-
-        // Update categories with products
-        setCategories(categoriesWithParcels)
-        setCategoriesWithParcels(categoriesWithParcels.filter(cat => cat.parcels && cat.parcels.length > 0))
-
-        // Update SEO config with dynamic data
-        const totalProducts = categoriesWithParcels.reduce((acc, cat) => acc + (cat.parcels?.length || 0), 0)
-        SEO_CONFIG.metrics.categoryCount = categoriesWithParcels.length
-        SEO_CONFIG.metrics.productCount = totalProducts
-        setProductsLoaded(true)
+        setLoading(false)
       } catch (error) {
-        console.error("Error fetching data:", error)
-        setCategoriesLoading(false)
+        console.error("Error loading data:", error)
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [])
+  }, [searchQuery]) // Re-run effect when URL search params change
 
-  // Filter products based on selected category
-  useEffect(() => {
-    if (selectedCategory === "semua") {
-      setFilteredParcels(featuredParcels)
-    } else {
-      const filtered = featuredParcels.filter(
-        (parcel) => parcel.category.slug === selectedCategory
-      )
-      setFilteredParcels(filtered)
-    }
-  }, [selectedCategory, featuredParcels])
-
-  // Generate dynamic SEO data
-  const generateSEOData = () => {
-    const totalProducts = categories.reduce((acc, cat) => acc + (cat.parcels?.length || 0), 0)
-    const totalCategories = categories.length
-
-    return {
-      title: `${SEO_CONFIG.content.heroTitle} - ${SEO_CONFIG.business.tagline} | ${SEO_CONFIG.business.name}`,
-      description: `🎁 ${SEO_CONFIG.business.description} dengan ${totalProducts}+ produk premium di ${totalCategories} kategori. Rating ${SEO_CONFIG.metrics.rating}/5 dari ${SEO_CONFIG.metrics.reviewCount}+ pelanggan. ${SEO_CONFIG.serviceAreas.map((area) => area.name).join(", ")}. Pesan sekarang via WhatsApp! ✨`,
-      keywords: [
-        ...SEO_CONFIG.keywords.primary,
-        ...SEO_CONFIG.keywords.secondary,
-        ...SEO_CONFIG.keywords.local,
-        ...SEO_CONFIG.keywords.occasions,
-        ...SEO_CONFIG.keywords.products,
-      ].join(", "),
-      structuredData: {
-        "@context": "https://schema.org",
-        "@type": "LocalBusiness",
-        "@id": `${SEO_CONFIG.contact.website}/#business`,
-        name: SEO_CONFIG.business.name,
-        legalName: SEO_CONFIG.business.legalName,
-        description: `${SEO_CONFIG.business.description} dengan ${totalProducts}+ produk berkualitas tinggi`,
-        foundingDate: SEO_CONFIG.business.foundedYear,
-        numberOfEmployees: SEO_CONFIG.business.employeeCount,
-        address: {
-          "@type": "PostalAddress",
-          streetAddress: SEO_CONFIG.address.street,
-          addressLocality: SEO_CONFIG.address.city,
-          addressRegion: SEO_CONFIG.address.state,
-          addressCountry: SEO_CONFIG.address.countryCode,
-          postalCode: SEO_CONFIG.address.postalCode,
-        },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: "-6.7063",
-          longitude: "108.5492",
-        },
-        telephone: SEO_CONFIG.contact.phone,
-        email: SEO_CONFIG.contact.email,
-        url: SEO_CONFIG.contact.website,
-        openingHoursSpecification: Object.entries(SEO_CONFIG.hours)
-          .filter(([key]) => key !== "timezone")
-          .map(([day, hours]) => ({
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: `https://schema.org/${day.charAt(0).toUpperCase() + day.slice(1)}`,
-            opens: (hours as string).split("-")[0],
-            closes: (hours as string).split("-")[1],
-          })),
-        priceRange: SEO_CONFIG.pricing.priceRange,
-        image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=1200&h=630&fit=crop",
-        areaServed: SEO_CONFIG.serviceAreas.map((area) => ({
-          "@type": "City",
-          name: area.name,
-          "@id": area.wikidata,
-        })),
-        sameAs: Object.values(SEO_CONFIG.social),
-        aggregateRating: {
-          "@type": "AggregateRating",
-          ratingValue: SEO_CONFIG.metrics.rating.toString(),
-          reviewCount: SEO_CONFIG.metrics.reviewCount.toString(),
-          bestRating: "5",
-          worstRating: "1",
-        },
-        offers: {
-          "@type": "AggregateOffer",
-          priceCurrency: SEO_CONFIG.pricing.currency,
-          lowPrice: SEO_CONFIG.pricing.minPrice.toString(),
-          highPrice: SEO_CONFIG.pricing.maxPrice.toString(),
-          offerCount: totalProducts.toString(),
-          availability: "https://schema.org/InStock",
-        },
-        hasOfferCatalog: {
-          "@type": "OfferCatalog",
-          name: `Katalog ${SEO_CONFIG.business.name}`,
-          itemListElement: categories.map((category, index) => ({
-            "@type": "OfferCatalog",
-            name: category.name,
-            description:
-              category.description ||
-              SEO_CONFIG.categoryDescriptions[category.slug as keyof typeof SEO_CONFIG.categoryDescriptions] ||
-              SEO_CONFIG.categoryDescriptions.default,
-            numberOfItems: category.parcels?.length || 0,
-            position: index + 1,
-          })),
-        },
-        potentialAction: {
-          "@type": "OrderAction",
-          target: SEO_CONFIG.social.whatsapp,
-          deliveryMethod: "https://schema.org/OnSitePickup",
-        },
-      },
-    }
-  }
-
-  const seoData = generateSEOData()
-  const totalProducts = categories.reduce((acc, cat) => acc + (cat.parcels?.length || 0), 0)
-  const totalCategories = categories.length
-
+  // --- VIEW: LOADING ---
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-        <div className="container mx-auto px-4 py-8">
-          {/* Hero Skeleton */}
-          <div className="text-center py-20 animate-pulse">
-            <div className="h-16 bg-gradient-to-r from-pink-200 to-purple-300 rounded-2xl w-2/3 mx-auto mb-6"></div>
-            <div className="h-6 bg-pink-200 rounded-xl w-4/5 mx-auto mb-8"></div>
-            <div className="flex justify-center gap-4">
-              <div className="h-12 bg-pink-200 rounded-2xl w-40"></div>
-            </div>
-          </div>
-
-          {/* Categories Skeleton */}
-          <div className="space-y-16">
-            {Array.from({ length: 3 }).map((_, catIndex) => (
-              <div key={catIndex} className="space-y-6">
-                <div className="h-8 bg-pink-200 rounded-xl w-64 mx-auto animate-pulse"></div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="bg-white/70 rounded-3xl shadow-lg overflow-hidden animate-pulse">
-                      <div className="bg-gradient-to-br from-pink-200 to-purple-300 aspect-square"></div>
-                      <div className="p-4 space-y-3">
-                        <div className="h-5 bg-pink-200 rounded-xl"></div>
-                        <div className="h-4 bg-pink-200 rounded-lg w-3/4"></div>
-                        <div className="flex justify-between items-center">
-                          <div className="h-5 bg-pink-200 rounded-xl w-1/2"></div>
-                          <div className="h-8 bg-pink-200 rounded-full w-10"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center space-y-4">
+        <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-500 font-medium animate-pulse">
+           {searchQuery ? "Mencari produk..." : "Menyiapkan etalase..."}
+        </p>
       </div>
     )
   }
 
+  // --- VIEW: SEARCH RESULTS ---
+  if (isSearching) {
+    return (
+      <main className="min-h-screen bg-[#F3F4F6] pb-24 font-sans pt-6">
+         <div className="container mx-auto px-4">
+            
+            {/* Search Header */}
+            <div className="mb-6 flex items-center justify-between">
+                <div>
+                   <h1 className="text-xl md:text-2xl font-bold text-slate-800 flex items-center gap-2">
+                       <Search className="w-6 h-6 text-pink-600" />
+                       Hasil Pencarian
+                   </h1>
+                   <p className="text-slate-500 text-sm mt-1">
+                       Menampilkan hasil untuk <span className="font-bold text-pink-600">"{searchQuery}"</span>
+                   </p>
+                </div>
+                <Button 
+                   onClick={() => setSearchParams({})}
+                   variant="outline"
+                   size="sm"
+                   className="text-slate-500 border-slate-200"
+                >
+                   Reset
+                </Button>
+            </div>
+
+            {/* Results Grid */}
+            {searchResults.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                    {searchResults.map((parcel) => (
+                        <div key={parcel.id} className="w-full">
+                           <ParcelCard parcel={parcel} />
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                /* Empty State */
+                <div className="flex flex-col items-center justify-center py-20 text-center bg-white rounded-2xl shadow-sm border border-slate-100">
+                    <div className="bg-slate-50 p-6 rounded-full mb-4">
+                        <PackageX className="w-16 h-16 text-slate-300" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 mb-2">Produk Tidak Ditemukan</h3>
+                    <p className="text-slate-500 max-w-md mx-auto mb-6 text-sm">
+                        Maaf, kami tidak menemukan produk dengan nama "{searchQuery}". Coba kata kunci lain atau lihat kategori kami.
+                    </p>
+                    <Button 
+                        onClick={() => setSearchParams({})} 
+                        className="bg-pink-600 hover:bg-pink-700 text-white"
+                    >
+                        Lihat Semua Produk
+                    </Button>
+                </div>
+            )}
+         </div>
+      </main>
+    )
+  }
+
+  // --- VIEW: NORMAL HOMEPAGE ---
   return (
     <>
       <SEO
-        title={seoData.title}
-        description={seoData.description}
+        title={`${SEO_CONFIG.business.name} | Official Store`}
+        description={SEO_CONFIG.business.description}
         url="/"
-        keywords={seoData.keywords}
-        structuredData={seoData.structuredData}
       />
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50">
-        {/* Enhanced Hero Section with Mobile-First Design */}
-        <section className="relative overflow-hidden py-6 md:py-16 lg:py-20">
-          <div className="absolute inset-0 bg-gradient-to-br from-pink-100/50 via-white/30 to-purple-100/50"></div>
 
-          {/* SEO-optimized structured content */}
-          <div className="container mx-auto px-4 relative z-10" itemScope itemType="https://schema.org/Store">
-            {/* Mobile: Text First, Image Below | Desktop: Side by Side */}
-            <div className="max-w-7xl mx-auto">
-              {/* Mobile Layout */}
-              <div className="block lg:hidden space-y-6">
-                {/* Mobile Text Content */}
-                <div className="text-center animate-fade-in">
-                  {/* Enhanced Badge with Trust Signals */}
-                  <div className="inline-flex items-center bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-200 rounded-full px-4 py-2 mb-4 shadow-lg">
-                    <Gift className="w-4 h-4 text-pink-600 mr-2" />
-                    <span className="text-pink-700 font-semibold text-sm">
-                      {SEO_CONFIG.business.tagline}
-                    </span>
-                  </div>
-
-                  {/* Mobile Heading - More Compact */}
-                  <h1 className="text-2xl md:text-3xl font-bold mb-3 leading-tight" itemProp="name">
-                    <span className="bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 bg-clip-text text-transparent block">
-                      Parcel Premium Cirebon
-                    </span>
-                    <span className="text-lg text-gray-700 font-medium block mt-1">
-                      50+ Produk untuk Momen Istimewa
-                    </span>
-                  </h1>
-
-                  {/* Mobile Description - Concise */}
-                  <p className="text-sm text-gray-600 mb-4 px-2" itemProp="description">
-                    Parcel berkualitas tinggi untuk 
-                    <span className="text-rose-600 font-semibold"> Lebaran</span>,
-                    <span className="text-purple-600 font-semibold"> Natal</span>, dan
-                    <span className="text-pink-600 font-semibold"> Imlek</span>
-                  </p>
-
-                  {/* Mobile Trust Indicators */}
-                  <div className="flex justify-center gap-2 mb-4">
-                    <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-pink-100">
-                      <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                      <span className="text-xs font-semibold text-gray-700">
-                        {SEO_CONFIG.metrics.rating}/5
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-pink-100">
-                      <Shield className="w-3 h-3 text-green-500" />
-                      <span className="text-xs font-semibold text-gray-700">Terjamin</span>
-                    </div>
-                    <div className="flex items-center gap-1 bg-white/80 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-sm border border-pink-100">
-                      <Truck className="w-3 h-3 text-blue-500" />
-                      <span className="text-xs font-semibold text-gray-700">1-2 Hari</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mobile Hero Image - Smaller and Cleaner */}
-                <div className="animate-fade-in px-4" style={{ animationDelay: "0.2s" }}>
-                  <div className="relative group max-w-sm mx-auto">
-                    <div className="bg-white rounded-2xl p-2 shadow-xl border border-pink-100/50">
-                      <img
-                        src="/hero-image.png"
-                        alt="Parcel Premium Cirebon - Hampers Berkualitas untuk Lebaran, Natal, dan Imlek"
-                        className="w-full h-auto rounded-xl object-cover aspect-[4/3]"
-                        loading="eager"
-                      />
-                    </div>
-                    {/* Subtle floating badge */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                      <Star className="w-4 h-4 text-white fill-current" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Mobile CTA */}
-                <div className="text-center px-4">
-                  <Button
-                    size="default"
-                    className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6 py-3 text-sm font-bold shadow-lg rounded-2xl transition-all duration-300"
-                    onClick={() =>
-                      window.open(
-                        createWhatsAppUrl(
-                          `🎁 Halo! Saya tertarik dengan parcel premium dari ${SEO_CONFIG.business.name}. Mohon info lebih lanjut!`,
-                        ),
-                        "_blank",
-                      )
-                    }
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Chat untuk Harga Terbaik
-                  </Button>
-                </div>
-              </div>
-
-              {/* Desktop Layout - Same as Before */}
-              <div className="hidden lg:grid lg:grid-cols-2 gap-12 items-center">
-                {/* Desktop Text Content */}
-                <div className="text-left animate-fade-in">
-                  {/* Enhanced Badge with Trust Signals */}
-                  <div className="inline-flex items-center bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-200 rounded-full px-6 py-3 mb-6 shadow-lg">
-                    <Gift className="w-5 h-5 text-pink-600 mr-2" />
-                    <span className="text-pink-700 font-semibold text-base">
-                      {SEO_CONFIG.business.tagline} • Rating {SEO_CONFIG.metrics.rating}/5
-                    </span>
-                  </div>
-
-                  {/* SEO-optimized Main Heading */}
-                  <h1 className="text-5xl xl:text-6xl font-bold mb-6 leading-tight" itemProp="name">
-                    <span className="bg-gradient-to-r from-pink-600 via-rose-600 to-purple-600 bg-clip-text text-transparent">
-                      {SEO_CONFIG.content.heroTitle}
-                    </span>
-                    <br />
-                    <span className="text-3xl xl:text-4xl text-gray-700 font-medium">
-                      {totalProducts}+ Produk {SEO_CONFIG.content.heroSubtitle}
-                    </span>
-                  </h1>
-
-                  {/* Enhanced Subtitle with Local SEO */}
-                  <div className="text-lg xl:text-xl text-gray-600 mb-8 leading-relaxed" itemProp="description">
-                    <p className="mb-3">
-                      {SEO_CONFIG.content.heroDescription} untuk
-                      <span className="text-rose-600 font-semibold"> Lebaran</span>,
-                      <span className="text-purple-600 font-semibold"> Natal</span>, dan
-                      <span className="text-pink-600 font-semibold"> Imlek</span>.
-                    </p>
-                    <p className="text-base">
-                      <span itemProp="areaServed">
-                        Pengiriman ke {SEO_CONFIG.serviceAreas.map((area) => area.name).join(", ")}
-                      </span>{" "}
-                      •
-                      <span className="text-blue-600 font-semibold">
-                        {" "}
-                        {SEO_CONFIG.serviceAreas[0].deliveryTime} {SEO_CONFIG.serviceAreas[0].name}
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* Trust Indicators Row */}
-                  <div className="flex flex-wrap gap-3 mb-8">
-                    <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-full shadow-sm border border-pink-100">
-                      <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      <span className="text-sm font-semibold text-gray-700">
-                        {SEO_CONFIG.metrics.rating}/5 ({SEO_CONFIG.metrics.reviewCount}+)
-                      </span>
-                    </div>
-                    {SEO_CONFIG.content.trustBadges.slice(0, 2).map((badge, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3 py-2 rounded-full shadow-sm border border-pink-100"
-                      >
-                        {badge.icon === "shield" && <Shield className="w-4 h-4 text-green-500" />}
-                        {badge.icon === "truck" && <Truck className="w-4 h-4 text-blue-500" />}
-                        {badge.icon === "clock" && <Clock className="w-4 h-4 text-purple-500" />}
-                        <span className="text-sm font-semibold text-gray-700">{badge.text}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Enhanced CTA Button */}
-                  <div>
-                    <Button
-                      size="lg"
-                      className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 text-lg shadow-xl rounded-2xl font-bold group transform hover:scale-105 transition-all duration-300"
-                      onClick={() =>
-                        window.open(
-                          createWhatsAppUrl(
-                            `🎁 Halo! Saya tertarik dengan parcel premium dari ${SEO_CONFIG.business.name}. Saya ingin mendapatkan harga terbaik untuk produk Anda. Bisa berikan informasi lebih lanjut?`,
-                          ),
-                          "_blank",
-                        )
-                      }
-                    >
-                      <MessageCircle className="h-5 w-5 mr-3 group-hover:scale-110 transition-transform" />
-                      Kontak Kami untuk Harga Terbaik!
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Desktop Hero Image */}
-                <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
-                  <div className="relative group">
-                    <div className="absolute -inset-4 bg-gradient-to-r from-pink-500/20 to-purple-600/20 rounded-3xl blur-2xl group-hover:blur-3xl transition-all duration-300"></div>
-                    <div className="relative bg-white/10 backdrop-blur-sm rounded-3xl p-4 shadow-2xl border border-white/20">
-                      <img
-                        src="/hero-image.png"
-                        alt="Parcel Premium Cirebon - Hampers Berkualitas untuk Lebaran, Natal, dan Imlek"
-                        className="w-full h-auto rounded-2xl shadow-xl object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-500"
-                        loading="eager"
-                      />
-                    </div>
-                    {/* Floating Elements */}
-                    <div className="absolute -top-6 -right-6 w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                      <Gift className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-gradient-to-r from-rose-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                      <Star className="w-8 h-8 text-white fill-current" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Background Floating Elements */}
-          <div className="absolute top-20 left-10 w-20 h-20 bg-gradient-to-r from-pink-400/20 to-purple-500/20 rounded-full filter blur-xl animate-float"></div>
-          <div className="absolute bottom-20 right-10 w-32 h-32 bg-gradient-to-r from-rose-400/20 to-pink-500/20 rounded-full filter blur-xl animate-float-delayed"></div>
-        </section>
-
-        {/* Enhanced Trust Indicators with Rich Data */}
-        <section className="py-6 md:py-8 bg-white/70 backdrop-blur-sm border-y border-pink-100">
+      <main className="min-h-screen bg-[#F3F4F6] pb-24 font-sans">
+        
+        {/* HERO SECTION */}
+        <section className="bg-white pb-6 pt-4 lg:pt-8 shadow-sm">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 text-center">
-              <div className="animate-fade-in p-3 md:p-4" itemScope itemType="https://schema.org/Rating">
-                <div
-                  className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-1 md:mb-2"
-                  itemProp="ratingValue"
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-pink-600 to-purple-800 min-h-[200px] lg:min-h-[320px] flex items-center shadow-lg">
+              <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+              
+              <div className="relative z-20 px-6 lg:px-12 py-8 w-full md:w-2/3 text-white">
+                <div className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] lg:text-xs font-bold mb-3 border border-white/20 shadow-sm">
+                  <Sparkles className="w-3 h-3 text-yellow-300 fill-yellow-300 animate-pulse" />
+                  <span className="tracking-wide uppercase">Official Store Cirebon</span>
+                </div>
+                <h1 className="text-2xl lg:text-5xl font-extrabold leading-tight mb-3 drop-shadow-sm">
+                  {SEO_CONFIG.business.tagline}
+                </h1>
+                <p className="text-pink-100 text-xs lg:text-lg mb-6 max-w-[80%] md:max-w-lg leading-relaxed opacity-90">
+                  {SEO_CONFIG.business.description}
+                </p>
+                <Button 
+                  onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="bg-white text-pink-700 hover:bg-pink-50 border-none font-bold rounded-xl px-6 h-10 lg:h-12 shadow-md hover:shadow-lg transition-all"
                 >
-                  {SEO_CONFIG.metrics.reviewCount}+
-                </div>
-                <div className="text-xs md:text-sm text-gray-600 font-medium">Pelanggan Puas</div>
+                  Belanja Sekarang
+                </Button>
               </div>
-              <div className="animate-fade-in p-3 md:p-4" style={{ animationDelay: "0.1s" }}>
-                <div className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-1 md:mb-2">
-                  {totalProducts}+
-                </div>
-                <div className="text-xs md:text-sm text-gray-600 font-medium">Produk Premium</div>
-              </div>
-              <div className="animate-fade-in p-3 md:p-4" style={{ animationDelay: "0.2s" }}>
-                <div className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-1 md:mb-2">
-                  {SEO_CONFIG.metrics.experienceYears}+
-                </div>
-                <div className="text-xs md:text-sm text-gray-600 font-medium">Tahun Pengalaman</div>
-              </div>
-              <div className="animate-fade-in p-3 md:p-4" style={{ animationDelay: "0.3s" }}>
-                <div className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-1 md:mb-2">
-                  {SEO_CONFIG.metrics.rating}/5
-                </div>
-                <div className="text-xs md:text-sm text-gray-600 font-medium">Rating Pelanggan</div>
+
+              <div className="absolute right-0 bottom-0 z-10 w-1/2 md:w-auto h-full flex items-end justify-end pointer-events-none">
+                 <div className="absolute inset-0 bg-gradient-to-t from-purple-800/80 via-transparent to-transparent md:hidden"></div>
+                 <img 
+                    src="/hero-image.png" 
+                    alt="Parcel Header" 
+                    className="w-40 md:w-80 lg:w-[450px] object-contain object-bottom transform translate-y-2 md:translate-y-4 md:translate-x-4 drop-shadow-2xl" 
+                 />
               </div>
             </div>
           </div>
         </section>
 
-        {/* Products by Category Sections - 10 products each */}
-        {categoriesWithParcels.length > 0 && (
-          <section className="py-12 bg-white/50 backdrop-blur-sm">
-            <div className="container mx-auto px-4 space-y-16">
-              {categoriesWithParcels.map((category, categoryIndex) => (
-                <div key={category.id} className="animate-fade-in" style={{ animationDelay: `${categoryIndex * 0.2}s` }}>
-                  {/* Category Header */}
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                        {category.name}
-                      </h2>
-                      <p className="text-gray-600 text-sm md:text-base">
-                        {category.description ||
-                          SEO_CONFIG.categoryDescriptions[
-                            category.slug as keyof typeof SEO_CONFIG.categoryDescriptions
-                          ] ||
-                          SEO_CONFIG.categoryDescriptions.default}
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="border-pink-300 text-pink-600 hover:bg-pink-500 hover:text-white rounded-xl font-semibold"
-                      asChild
+        {/* CATEGORY NAV */}
+        <section className="bg-white py-5 shadow-sm border-t border-slate-50 mb-3">
+          <div className="container mx-auto px-4">
+            {categories.length > 0 ? (
+              <div className="flex overflow-x-auto gap-3 lg:gap-8 pb-2 lg:justify-center no-scrollbar px-2">
+                {categories.map((cat, idx) => {
+                  const style = getCategoryStyle(idx);
+                  const emoji = getCategoryEmoji(cat.name);
+                  
+                  return (
+                    <Link
+                      key={cat.id}
+                      to={`/produk/${cat.slug}`}
+                      className="flex flex-col items-center gap-2 min-w-[72px] group"
                     >
-                      <Link to={`/produk/${category.slug}`}>
-                        Lihat Semua ({category.parcels?.length || 0})
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Link>
-                    </Button>
-                  </div>
-
-                  {/* Products Grid - Show 10 products */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                    {category.parcels?.slice(0, 10).map((parcel, index) => (
-                      <div
-                        key={parcel.id}
-                        className="animate-fade-in"
-                        style={{ animationDelay: `${index * 0.05}s` }}
-                      >
-                        <ParcelCard parcel={parcel} />
+                      <div className={`w-12 h-12 lg:w-16 lg:h-16 ${style.bg} rounded-[20px] lg:rounded-[24px] flex items-center justify-center border ${style.border} transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md shadow-sm`}>
+                         <span className="text-2xl lg:text-3xl filter drop-shadow-sm transform group-hover:scale-110 transition-transform">
+                           {emoji}
+                         </span>
                       </div>
-                    ))}
-                  </div>
+                      <span className="text-[10px] lg:text-xs font-semibold text-center text-slate-700 leading-tight line-clamp-2 max-w-[72px] group-hover:text-pink-600 transition-colors">
+                        {cat.name}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        {/* REKOMENDASI / TERLARIS */}
+        {featuredParcels.length > 0 && (
+          <section className="bg-white py-6 mb-3 border-y border-slate-100">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-pink-600" />
+                  <h2 className="text-lg lg:text-xl font-bold text-slate-800">Paling Laris</h2>
                 </div>
-              ))}
+              </div>
+              <div className="flex overflow-x-auto gap-3 pb-4 -mx-4 px-4 snap-x hide-scrollbar">
+                {featuredParcels.map((parcel) => (
+                  <div key={parcel.id} className="min-w-[150px] md:min-w-[180px] snap-start">
+                     <ParcelCard parcel={parcel} />
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}
 
-        {/* Enhanced Featured Products with Filtering - Produk Terlaris */}
-        <section
-          className="py-16 bg-gradient-to-br from-pink-50 to-purple-50"
-          itemScope
-          itemType="https://schema.org/ItemList"
-        >
-          <div className="container mx-auto px-4">
-            {/* Appealing Copywriting Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center bg-gradient-to-r from-pink-100 to-purple-100 border border-pink-200 rounded-full px-6 py-3 mb-6 shadow-lg">
-                <Search className="w-5 h-5 text-pink-600 mr-3" />
-                <span className="text-pink-700 font-semibold text-lg">
-                  Halo! Apa yang Anda cari untuk...
-                </span>
-              </div>
-
-              <h2
-                className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent"
-                itemProp="name"
-              >
-                🎁 Momen Istimewa Anda? 🎁
-              </h2>
-              <p
-                className="text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-2"
-                itemProp="description"
-              >
-                Temukan parcel premium yang sempurna untuk setiap perayaan spesial Anda
-              </p>
-              <p className="text-sm text-gray-500">
-                ✨ Dipercaya {SEO_CONFIG.metrics.reviewCount}+ pelanggan dengan rating {SEO_CONFIG.metrics.rating}/5 ✨
-              </p>
-            </div>
-
-            {/* Responsive Filter Section */}
-            <div className="mb-8">
-              {/* Desktop Filter */}
-              <div className="hidden md:flex justify-center items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-pink-100">
-                  <Filter className="w-4 h-4 text-pink-600" />
-                  <span className="text-sm font-semibold text-gray-700">Filter Kategori:</span>
-                </div>
-                <button
-                  onClick={() => setSelectedCategory("semua")}
-                  className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                    selectedCategory === "semua"
-                      ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg transform scale-105"
-                      : "bg-white/80 text-gray-700 hover:bg-pink-100 border border-pink-200"
-                  }`}
-                >
-                  🎯 Semua Produk ({featuredParcels.length})
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.slug)}
-                    className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                      selectedCategory === category.slug
-                        ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-lg transform scale-105"
-                        : "bg-white/80 text-gray-700 hover:bg-pink-100 border border-pink-200"
-                    }`}
+        {/* STICKY FILTER BAR */}
+        <div id="catalog" className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all">
+          <div className="container mx-auto px-4 py-3">
+             <div className="flex overflow-x-auto gap-2 no-scrollbar">
+                <Link to="/?">
+                  <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="rounded-full px-5 h-9 text-xs font-bold border-slate-200 text-slate-600 hover:text-pink-600 hover:border-pink-200 bg-white"
                   >
-                    {category.slug === "lebaran" && "🌙"} 
-                    {category.slug === "christmas" && "🎄"} 
-                    {category.slug === "lunar-new-year" && "🧧"} 
-                    {category.slug === "set-bekal-anak" && "🎒"} 
-                    {category.slug.includes("birthday") && "🎂"}
-                    {!["lebaran", "christmas", "lunar-new-year", "set-bekal-anak"].some(slug => category.slug.includes(slug)) && !category.slug.includes("birthday") && "🎁"} {category.name}
-                  </button>
-                ))}
-              </div>
-
-              {/* Mobile Filter Dropdown */}
-              <div className="md:hidden relative">
-                <button
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  className="w-full bg-white/90 backdrop-blur-sm border border-pink-200 rounded-2xl px-6 py-4 flex items-center justify-between shadow-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <Filter className="w-5 h-5 text-pink-600" />
-                    <span className="font-semibold text-gray-800">
-                      {selectedCategory === "semua" 
-                        ? `🎯 Semua Produk (${featuredParcels.length})`
-                        : categories.find(cat => cat.slug === selectedCategory)?.name || "Pilih Kategori"
-                      }
-                    </span>
-                  </div>
-                  <ChevronDown className={`w-5 h-5 text-pink-600 transition-transform duration-300 ${isFilterOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {/* Mobile Dropdown Menu */}
-                {isFilterOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-sm border border-pink-200 rounded-2xl shadow-2xl z-10 overflow-hidden">
-                    <button
-                      onClick={() => {
-                        setSelectedCategory("semua")
-                        setIsFilterOpen(false)
-                      }}
-                      className={`w-full px-6 py-4 text-left flex items-center gap-3 transition-colors ${
-                        selectedCategory === "semua" 
-                          ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" 
-                          : "hover:bg-pink-50"
-                      }`}
-                    >
-                      <span className="text-xl">🎯</span>
-                      <span className="font-semibold">Semua Produk ({featuredParcels.length})</span>
-                    </button>
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        onClick={() => {
-                          setSelectedCategory(category.slug)
-                          setIsFilterOpen(false)
-                        }}
-                        className={`w-full px-6 py-4 text-left flex items-center gap-3 transition-colors ${
-                          selectedCategory === category.slug 
-                            ? "bg-gradient-to-r from-pink-500 to-purple-600 text-white" 
-                            : "hover:bg-pink-50"
-                        }`}
+                      Semua Produk
+                  </Button>
+                </Link>
+                {categories.map((cat) => (
+                    <Link key={cat.id} to={`/produk/${cat.slug}`}>
+                      <Button 
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full px-5 h-9 text-xs font-bold whitespace-nowrap border-slate-200 text-slate-600 hover:text-pink-600 hover:border-pink-200 bg-white"
                       >
-                        <span className="text-xl">
-                          {category.slug === "lebaran" && "🌙"} 
-                          {category.slug === "christmas" && "🎄"} 
-                          {category.slug === "lunar-new-year" && "🧧"} 
-                          {category.slug === "set-bekal-anak" && "🎒"} 
-                          {category.slug.includes("birthday") && "🎂"}
-                          {!["lebaran", "christmas", "lunar-new-year", "set-bekal-anak"].some(slug => category.slug.includes(slug)) && !category.slug.includes("birthday") && "🎁"}
-                        </span>
-                        <span className="font-semibold">{category.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+                          {cat.name}
+                      </Button>
+                    </Link>
+                ))}
+             </div>
+          </div>
+        </div>
 
-            {filteredParcels.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center animate-pulse shadow-2xl">
-                  <ShoppingBag className="h-12 w-12 text-white" />
-                </div>
-                <h3 className="text-2xl font-semibold text-gray-700 mb-4">
-                  {selectedCategory === "semua" ? "Produk Segera Hadir" : "Belum Ada Produk"}
-                </h3>
-                <p className="text-gray-500 text-lg mb-6">
-                  {selectedCategory === "semua" 
-                    ? "Kami sedang mempersiapkan produk-produk terbaik untuk Anda"
-                    : `Produk kategori ini sedang dalam persiapan. Coba kategori lainnya!`
-                  }
-                </p>
-                <Button
-                  variant="outline"
-                  className="border-pink-300 text-pink-600 hover:bg-pink-500 hover:text-white rounded-2xl font-semibold px-8 py-3"
-                  onClick={() => setSelectedCategory("semua")}
-                >
-                  Lihat Semua Produk
-                </Button>
-              </div>
-            ) : (
-              <>
-                {/* Results Count */}
-                <div className="text-center mb-8">
-                  <p className="text-gray-600 font-medium">
-                    Menampilkan <span className="font-bold text-pink-600">{filteredParcels.length}</span> produk
-                    {selectedCategory !== "semua" && (
-                      <span> untuk kategori <span className="font-bold text-purple-600">
-                        {categories.find(cat => cat.slug === selectedCategory)?.name}
-                      </span></span>
-                    )}
-                  </p>
-                </div>
-
-                {/* Products Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
-                  {filteredParcels.slice(0, 12).map((parcel, index) => (
-                    <div
-                      key={parcel.id}
-                      className="animate-fade-in"
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                      itemScope
-                      itemType="https://schema.org/Product"
-                      itemProp="itemListElement"
-                    >
-                      <ParcelCard parcel={parcel} />
+        {/* MAIN FEED */}
+        <div className="container mx-auto px-4 pt-4">
+             <div className="space-y-4">
+                {categoriesWithParcels.map((category) => (
+                    <div key={category.id} className="bg-white py-4 px-4 md:px-6 rounded-2xl shadow-sm border border-slate-100">
+                          {/* Section Header */}
+                          <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-base md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                              <span>{getCategoryEmoji(category.name)}</span>
+                              {category.name}
+                            </h2>
+                            <Link 
+                              to={`/produk/${category.slug}`}
+                              className="text-pink-600 h-8 text-xs font-bold hover:bg-pink-50 flex items-center gap-1 pr-0 px-2 rounded-md transition-colors"
+                            >
+                              Lihat Semua <ChevronRight className="w-4 h-4" />
+                            </Link>
+                          </div>
+                          
+                          {/* Horizontal Scroll Row */}
+                          <div className="flex overflow-x-auto gap-3 pb-2 -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth hide-scrollbar snap-x">
+                            {category.parcels?.map((parcel) => (
+                                <div key={parcel.id} className="min-w-[160px] md:min-w-[200px] snap-start">
+                                    <ParcelCard parcel={parcel} />
+                                </div>
+                            ))}
+                          </div>
                     </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </section>
+                ))}
+             </div>
+        </div>
 
-        {/* Enhanced Why Choose Us with Local SEO */}
-        <section className="py-16 bg-white/70 backdrop-blur-sm" itemScope itemType="https://schema.org/Organization">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Mengapa Pilih {SEO_CONFIG.business.name}?
-              </h2>
-              <p className="text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Komitmen kami untuk memberikan pengalaman terbaik dalam setiap pemesanan parcel di{" "}
-                {SEO_CONFIG.address.city} dan sekitarnya
-              </p>
-            </div>
+      </main>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div
-                className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300 group"
-                itemScope
-                itemType="https://schema.org/Service"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Shield className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 text-gray-800" itemProp="name">
-                  Kualitas Terjamin
-                </h3>
-                <p className="text-sm text-gray-600 leading-relaxed" itemProp="description">
-                  Semua produk telah melalui quality control ketat dengan garansi 100% untuk memastikan kepuasan Anda
-                </p>
-              </div>
+      {/* WhatsApp Floating Button */}
+      <a 
+        href={createWhatsAppUrl("Halo, saya mau tanya produk parcel")}
+        target="_blank"
+        rel="noreferrer"
+        className="fixed bottom-6 right-4 z-50 bg-[#25D366] text-white p-3 md:p-4 rounded-full shadow-lg hover:shadow-xl hover:bg-[#20bd5a] transition-all duration-300 flex items-center gap-2 animate-in slide-in-from-bottom-4"
+      >
+        <MessageCircle className="w-6 h-6" />
+        <span className="hidden md:inline font-bold text-sm">Chat Admin</span>
+      </a>
 
-              <div
-                className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300 group"
-                itemScope
-                itemType="https://schema.org/Service"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Truck className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 text-gray-800" itemProp="name">
-                  Pengiriman Terpercaya
-                </h3>
-                <p className="text-sm text-gray-600 leading-relaxed" itemProp="description">
-                  {SEO_CONFIG.serviceAreas[0].deliveryTime} {SEO_CONFIG.serviceAreas[0].name},{" "}
-                  {SEO_CONFIG.serviceAreas[1].deliveryTime} {SEO_CONFIG.serviceAreas[1].name} &{" "}
-                  {SEO_CONFIG.serviceAreas[2].name} dengan layanan pengiriman yang dapat diandalkan
-                </p>
-              </div>
-
-              <div
-                className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300 group"
-                itemScope
-                itemType="https://schema.org/Service"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-pink-500 to-rose-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Heart className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 text-gray-800" itemProp="name">
-                  Pelayanan 24/7
-                </h3>
-                <p className="text-sm text-gray-600 leading-relaxed" itemProp="description">
-                  Customer service profesional siap membantu kapan saja dengan respon cepat via WhatsApp
-                </p>
-              </div>
-
-              <div
-                className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-pink-100 hover:shadow-xl transition-all duration-300 group"
-                itemScope
-                itemType="https://schema.org/Service"
-              >
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Award className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold mb-3 text-gray-800" itemProp="name">
-                  Terpercaya
-                </h3>
-                <p className="text-sm text-gray-600 leading-relaxed" itemProp="description">
-                  Dipercaya {SEO_CONFIG.metrics.reviewCount}+ pelanggan dengan rating {SEO_CONFIG.metrics.rating}/5 dan
-                  testimoni positif
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Call to Action Section */}
-        <section className="py-16 bg-gradient-to-r from-pink-500 to-purple-600">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Siap Berbelanja Parcel Premium?
-            </h2>
-            <p className="text-xl text-pink-100 mb-8 max-w-2xl mx-auto">
-              Dapatkan penawaran terbaik dan konsultasi gratis untuk kebutuhan parcel Anda
-            </p>
-            <Button
-              size="lg"
-              className="bg-white text-pink-600 hover:bg-gray-100 px-12 py-4 text-lg rounded-2xl font-bold shadow-xl transform hover:scale-105 transition-all duration-300"
-              onClick={() =>
-                window.open(
-                  createWhatsAppUrl(
-                    `🎁 Halo! Saya ingin konsultasi dan mendapatkan penawaran terbaik untuk parcel premium dari ${SEO_CONFIG.business.name}. Mohon info lebih lanjut!`,
-                  ),
-                  "_blank",
-                )
-              }
-            >
-              <MessageCircle className="h-6 w-6 mr-3" />
-              Hubungi Kami Sekarang
-            </Button>
-          </div>
-        </section>
-      </div>
       <Footer />
     </>
   )
-}
+} 

@@ -1,10 +1,10 @@
 "use client"
 
 import { Link } from "react-router-dom"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, Star, ShoppingCart, Heart } from "lucide-react"
+import { MessageCircle, Star, MapPin, ShieldCheck, Zap } from "lucide-react"
 import { createWhatsAppUrl } from "@/constants/whatsapp"
 
 interface Parcel {
@@ -28,168 +28,145 @@ interface ParcelCardProps {
 }
 
 export const ParcelCard = ({ parcel }: ParcelCardProps) => {
+  // Format Price: Rp 150.000
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
-    }).format(price)
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price).replace("Rp", "Rp")
   }
 
-  const handleWhatsAppOrder = () => {
-    const message = `Hi! Saya tertarik memesan ${parcel.name} seharga ${formatPrice(parcel.price)}. Bisa berikan detail lebih lanjut?`
+  // Format Sold Count: 1.2rb+
+  const formatSold = (count: number) => {
+    if (count > 1000) return `${(count / 1000).toFixed(1)}RB+`
+    return `${count}+`
+  }
+
+  const handleWhatsAppOrder = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent Link navigation
+    e.stopPropagation() // Prevent bubbling
+
+    // 1. Get the base domain (e.g., https://lipinkparcel.com or localhost:5173)
+    const baseUrl = window.location.origin
+    
+    // 2. Construct the Full Product URL
+    const productUrl = `${baseUrl}/produk/${parcel.category.slug}/${parcel.slug}`
+
+    // 3. Create the Message with the Link
+    const message = `Halo Admin Lipink Parcel 👋\n\nSaya tertarik dengan produk ini:\n\n🛍️ *${parcel.name}*\n💰 Harga: ${formatPrice(parcel.price)}\n🔗 Link: ${productUrl}\n\nMohon info stoknya ya. Terima kasih!`
+
+    // 4. Send to WhatsApp
     const whatsappUrl = createWhatsAppUrl(message, parcel.image_url)
     window.open(whatsappUrl, "_blank")
   }
 
-  const rating = parcel.rating || 4.5
-  const reviewsCount = parcel.reviews_count || Math.floor(Math.random() * 50) + 15
-
-  // Always show 20% discount for better UI
-  const discountPercentage = 20
+  // --- MOCK DATA LOGIC ---
+  const rating = parcel.rating || 4.9
+  const soldCount = parcel.reviews_count ? parcel.reviews_count * 5 : Math.floor(Math.random() * 100) + 20
+  
+  // Shopee-style Discount Logic
+  const discountPercentage = 25 
   const currentPrice = parcel.price
   const originalPrice = Math.round(currentPrice / (1 - discountPercentage / 100))
   const savings = originalPrice - currentPrice
 
   return (
-    <Card className="group relative overflow-hidden rounded-xl md:rounded-2xl bg-white/80 backdrop-blur-sm border border-pink-100 shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 hover:scale-[1.02] w-full h-full flex flex-col">
-      {/* Image Container */}
-      <div className="relative flex-shrink-0">
-        <Link to={`/produk/${parcel.category.slug}/${parcel.slug}`}>
-          <div className="aspect-square relative overflow-hidden rounded-t-xl md:rounded-t-2xl bg-gradient-to-br from-pink-50 to-purple-50">
-            {/* Main Image */}
-            <img
-              src={parcel.image_url || "/placeholder.svg?height=300&width=300&query=hampers gift box"}
-              alt={parcel.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              loading="lazy"
-            />
-
-            {/* Gradient Overlay on Hover */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-            {/* Discount Badge */}
-            <div className="absolute top-2 md:top-3 right-2 md:right-3 z-20">
-              <Badge className="bg-gradient-to-r from-red-500 to-pink-600 text-white border-0 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
-                -{discountPercentage}%
-              </Badge>
-            </div>
-
-            {/* Wishlist Button */}
-            <button className="absolute top-2 md:top-3 left-2 md:left-3 z-20 w-6 h-6 md:w-8 md:h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110 shadow-lg">
-              <Heart className="w-3 h-3 md:w-4 md:h-4 text-pink-500 hover:fill-current transition-colors" />
-            </button>
-
-            {/* Quick Actions - Desktop Only */}
-            <div className="absolute bottom-2 md:bottom-3 left-2 md:left-3 right-2 md:right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 hidden lg:block">
-              <div className="flex gap-1 md:gap-2">
-                <Button
-                  onClick={handleWhatsAppOrder}
-                  size="sm"
-                  className="flex-1 bg-green-500/90 hover:bg-green-600 text-white backdrop-blur-sm rounded-lg md:rounded-xl text-xs font-medium shadow-lg border-0 h-7 md:h-8"
-                >
-                  <MessageCircle className="w-2.5 h-2.5 md:w-3 md:h-3 mr-1" />
-                  <span className="hidden md:inline">Chat</span>
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="bg-white/90 hover:bg-white text-gray-800 backdrop-blur-sm rounded-lg md:rounded-xl shadow-lg border-white/50 h-7 md:h-8 px-2"
-                >
-                  <ShoppingCart className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Link>
-      </div>
-
-      {/* Content */}
-      <CardContent className="p-2.5 md:p-4 flex-1 flex flex-col">
-        <div className="space-y-1.5 md:space-y-3 flex-1">
-          {/* Category Badge */}
-          <Badge
-            variant="secondary"
-            className="bg-gradient-to-r from-pink-100 to-purple-100 text-pink-700 border-0 text-xs font-medium px-1.5 md:px-2 py-0.5 md:py-1 rounded-full w-fit"
-          >
-            {parcel.category.name}
-          </Badge>
-
-          {/* Product Name */}
-          <Link to={`/produk/${parcel.category.slug}/${parcel.slug}`}>
-            <h3 className="font-bold text-xs md:text-base hover:text-pink-600 transition-colors line-clamp-2 leading-tight text-gray-800 min-h-[2rem] md:min-h-[3rem]">
-              {parcel.name}
-            </h3>
-          </Link>
-
-          {/* Description - Hidden on Mobile */}
-          <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed hidden md:block">{parcel.description}</p>
-
-          {/* Rating */}
-          <div className="flex items-center gap-1">
-            <div className="flex items-center">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`w-2.5 h-2.5 md:w-4 md:h-4 ${
-                    i < Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                  }`}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-gray-500 ml-0.5">
-              ({rating}) • {reviewsCount}
-            </span>
+    <Card className="group relative flex flex-col w-full h-full overflow-hidden rounded-lg bg-white border border-slate-100 shadow-sm hover:shadow-[0_4px_20px_rgb(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300">
+      
+      <Link to={`/produk/${parcel.category.slug}/${parcel.slug}`} className="flex flex-col h-full">
+        
+        {/* === IMAGE SECTION === */}
+        <div className="relative aspect-square w-full bg-slate-50 overflow-hidden">
+          <img
+            src={parcel.image_url || "/placeholder.svg?height=400&width=400"}
+            alt={parcel.name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+          
+          {/* === SHOPEE STYLE PROMO TAG (Top Right) === */}
+          <div className="absolute top-0 right-0 z-10">
+             <div className="bg-yellow-400 text-red-600 flex flex-col items-center justify-center px-1.5 py-1 min-w-[40px] md:min-w-[45px] h-[45px] md:h-[50px] shadow-sm relative">
+                {/* Small tail effect */}
+                <div className="absolute bottom-[-4px] left-0 right-0 h-1 bg-yellow-400 clip-path-triangle" style={{clipPath: "polygon(0 0, 50% 100%, 100% 0)"}}></div>
+                
+                <span className="text-[10px] leading-none font-bold">DISKON</span>
+                <span className="text-sm md:text-base font-extrabold leading-none">{discountPercentage}%</span>
+             </div>
           </div>
 
-          {/* Price Section */}
-          <div className="flex items-end justify-between pt-1 md:pt-2">
-            <div className="flex-1 min-w-0">
-              {/* Current Price */}
-              <div className="flex items-center gap-1 md:gap-2 mb-1">
-                <p className="text-sm md:text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent truncate">
-                  {formatPrice(currentPrice)}
-                </p>
-                <Badge className="bg-gradient-to-r from-red-100 to-pink-100 text-red-700 text-xs font-bold px-1 md:px-2 py-0 md:py-0.5 rounded-full border border-red-200 flex-shrink-0">
-                  -{discountPercentage}%
-                </Badge>
-              </div>
-
-              {/* Original Price & Savings */}
-              <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                <p className="text-xs text-gray-500 line-through font-medium">{formatPrice(originalPrice)}</p>
-                <div className="flex items-center gap-0.5 md:gap-1">
-                  <span className="text-xs text-green-600 font-semibold">Hemat {formatPrice(savings)}</span>
-                </div>
-              </div>
-
-              {/* Special Offer Text */}
-              <p className="text-xs text-orange-600 font-medium mt-1 bg-gradient-to-r from-orange-50 to-yellow-50 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full border border-orange-200 w-fit">
-                🔥 Promo Spesial!
-              </p>
-            </div>
+          {/* "Official" / "Star+" Badge (Top Left) */}
+          <div className="absolute top-2 left-2">
+             <div className="bg-red-600 text-white text-[9px] md:text-[10px] font-bold px-1.5 py-0.5 rounded-[2px] shadow-sm flex items-center gap-1 uppercase tracking-wider">
+                <ShieldCheck className="w-3 h-3 fill-white text-red-600" />
+                Official
+             </div>
           </div>
         </div>
-      </CardContent>
 
-      {/* Footer - Mobile Only */}
-      <CardFooter className="p-2.5 md:hidden pt-0 mt-auto">
-        <Button
-          onClick={handleWhatsAppOrder}
-          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg py-2 font-semibold text-xs relative overflow-hidden"
-        >
-          <div className="flex items-center justify-center">
-            <MessageCircle className="w-3 h-3 mr-1.5" />
-            Chat & Pesan
+        {/* === CONTENT SECTION === */}
+        <CardContent className="flex flex-col p-2.5 md:p-3 gap-1 flex-1">
+          
+          {/* Title */}
+          <h3 className="text-xs md:text-sm text-slate-800 font-normal leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-red-600 transition-colors">
+            {parcel.name}
+          </h3>
+
+          {/* Shopee Style Price Block */}
+          <div className="mt-1">
+            {/* Discount Label (Hemat Rp...) */}
+            <div className="bg-pink-100 text-pink-600 text-[9px] w-fit px-1 rounded-[2px] font-bold mb-0.5 border border-pink-200">
+               Hemat {formatPrice(savings).replace("Rp", "")}
+            </div>
+
+            {/* Main Price */}
+            <p className="text-sm md:text-lg font-bold text-red-600 truncate">
+              {formatPrice(parcel.price)}
+            </p>
+            
+            {/* Coret Price */}
+            <div className="flex items-center gap-1 h-4">
+               <span className="text-[10px] md:text-xs text-slate-400 line-through">
+                  {formatPrice(originalPrice)}
+               </span>
+            </div>
           </div>
-        </Button>
-      </CardFooter>
 
-      {/* Subtle border glow effect */}
-      <div className="absolute inset-0 rounded-xl md:rounded-2xl border border-transparent group-hover:border-pink-200 transition-colors duration-300 pointer-events-none" />
+          {/* Location & Trust Signals */}
+          <div className="mt-2 flex items-center gap-1 text-[10px] text-slate-500">
+             <MapPin className="w-3 h-3 text-slate-400" />
+             <span className="truncate">Kota Cirebon</span>
+          </div>
 
-      {/* Modern floating elements */}
-      <div className="absolute -top-1 -right-1 w-8 h-8 md:w-16 md:h-16 bg-gradient-to-br from-pink-400/10 to-purple-500/10 rounded-full filter blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className="absolute -bottom-1 -left-1 w-6 h-6 md:w-12 md:h-12 bg-gradient-to-tr from-green-400/10 to-blue-500/10 rounded-full filter blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          {/* Rating & Sold (Bottom Row) */}
+          <div className="mt-auto pt-2 flex items-center gap-2 border-t border-slate-50/50">
+             <div className="flex items-center gap-0.5">
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                <span className="text-[10px] md:text-xs text-slate-700">{rating}</span>
+             </div>
+             <span className="text-[10px] text-slate-300">|</span>
+             <div className="text-[10px] md:text-xs text-slate-500">
+                Terjual {formatSold(soldCount)}
+             </div>
+          </div>
+
+        </CardContent>
+
+        {/* === ACTION BUTTON === */}
+        <div className="px-2.5 pb-3 md:px-3 md:pb-3 mt-auto">
+          <Button
+            onClick={handleWhatsAppOrder}
+            variant="outline"
+            className="w-full h-8 text-xs font-bold border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-md flex items-center justify-center gap-1.5"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            Beli Sekarang
+          </Button>
+        </div>
+
+      </Link>
     </Card>
   )
 }

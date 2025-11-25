@@ -1,192 +1,207 @@
-import { Instagram, MessageCircle, Facebook, ShoppingBag, Store } from "lucide-react"
-
-// Social media constants - easy to change
-const SOCIAL_LINKS = {
-  instagram: {
-    url: "https://instagram.com/yourstore",
-    label: "Instagram",
-    icon: Instagram,
-    color: "from-pink-500 to-purple-600",
-  },
-  shopee: {
-    url: "https://shopee.co.id/yourstore",
-    label: "Shopee",
-    icon: ShoppingBag,
-    color: "from-orange-500 to-red-500",
-  },
-  whatsapp: {
-    url: "https://wa.me/6281234567890",
-    label: "WhatsApp",
-    icon: MessageCircle,
-    color: "from-green-500 to-emerald-600",
-  },
-  tokopedia: {
-    url: "https://tokopedia.com/yourstore",
-    label: "Tokopedia",
-    icon: Store,
-    color: "from-green-600 to-teal-600",
-  },
-  facebook: {
-    url: "https://facebook.com/yourstore",
-    label: "Facebook",
-    icon: Facebook,
-    color: "from-blue-600 to-indigo-600",
-  },
-}
-
-const COMPANY_INFO = {
-  name: "Toko Hampers Premium",
-  tagline: "Hadiah Istimewa untuk Momen Berharga",
-  description: "Menyediakan hampers dan hadiah berkualitas premium untuk setiap momen spesial Anda.",
-  email: "hello@tokohampers.com",
-  phone: "+62 812-3456-7890",
-  address: "Jakarta, Indonesia",
-}
-
-const QUICK_LINKS = [
-  { name: "Tentang Kami", href: "/about" },
-  { name: "Katalog Produk", href: "/produk" },
-  { name: "Cara Pemesanan", href: "/cara-pesan" },
-  { name: "Kebijakan Privasi", href: "/privacy" },
-  { name: "Syarat & Ketentuan", href: "/terms" },
-  { name: "Kontak", href: "/contact" },
-]
+import { 
+  Instagram, 
+  Facebook, 
+  MessageCircle, 
+  MapPin, 
+  Phone, 
+  ShoppingBag, 
+  Store, 
+  CreditCard,
+  ShieldCheck,
+  Truck,
+  Sparkles,
+  ExternalLink,
+  ArrowRight
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export const Footer = () => {
-  const currentYear = new Date().getFullYear()
+  const currentYear = new Date().getFullYear();
+
+  // Data Configuration
+  const CONTACT_INFO = {
+    address: "Jl. Garuda No.4, Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131 (Area Jakarta Intl Denso Cirebon)",
+    phone: "+62 812-2220-8580",
+  };
+
+  const SOCIALS = [
+    { 
+      name: "Instagram", 
+      url: "https://www.instagram.com/lipink2003/", 
+      icon: Instagram,
+      style: "bg-white text-pink-600 border-slate-200 hover:border-pink-200 hover:bg-pink-50"
+    },
+    { 
+      name: "Facebook", 
+      url: "https://m.facebook.com/happybeargiftland/", 
+      icon: Facebook,
+      style: "bg-white text-blue-600 border-slate-200 hover:border-blue-200 hover:bg-blue-50"
+    },
+    { 
+      name: "WhatsApp", 
+      url: "https://api.whatsapp.com/send?phone=628122208580", 
+      icon: MessageCircle,
+      style: "bg-white text-green-600 border-slate-200 hover:border-green-200 hover:bg-green-50"
+    },
+  ];
+
+  const MARKETPLACES = [
+    { 
+      name: "Shopee", 
+      url: "https://shopee.co.id/lipink2003", 
+      icon: ShoppingBag,
+      style: "bg-[#EE4D2D] hover:bg-[#d03e1f] text-white border-0"
+    },
+    { 
+      name: "Tokopedia", 
+      url: "https://www.tokopedia.com/giftland", 
+      icon: Store,
+      style: "bg-[#03AC0E] hover:bg-[#02910b] text-white border-0"
+    },
+  ];
 
   return (
-    <footer className="bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 border-t border-pink-100">
-      <div className="container mx-auto px-4 py-16">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
-          {/* Company Info */}
-          <div className="lg:col-span-2 space-y-6">
-            <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-3">
-                {COMPANY_INFO.name}
-              </h3>
-              <p className="text-pink-600 font-medium text-lg mb-4">{COMPANY_INFO.tagline}</p>
-              <p className="text-gray-600 leading-relaxed mb-6">{COMPANY_INFO.description}</p>
-            </div>
-
-            {/* Contact Info */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-gray-600">
-                <div className="w-5 h-5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex-shrink-0"></div>
-                <span>{COMPANY_INFO.email}</span>
+    // ADDED: shadow-[0_-10px_60px_rgba(0,0,0,0.05)] for a nice upward shadow
+    <footer className="bg-white border-t border-slate-100 pt-12 pb-8 font-sans w-full shadow-[0_-10px_60px_rgba(0,0,0,0.05)] relative z-10">
+      
+      <div className="container mx-auto px-6">
+        
+        {/* === TOP GRID === */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 mb-12">
+          
+          {/* COL 1: BRANDING (4 Cols) */}
+          <div className="lg:col-span-4 space-y-6">
+            <div className="flex items-center gap-2 select-none">
+              <div className="relative p-2 rounded-xl bg-pink-50 border border-pink-100">
+                 <ShoppingBag className="h-6 w-6 text-pink-600" />
+                 <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-yellow-400 fill-yellow-400" />
               </div>
-              <div className="flex items-center gap-3 text-gray-600">
-                <div className="w-5 h-5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex-shrink-0"></div>
-                <span>{COMPANY_INFO.phone}</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-600">
-                <div className="w-5 h-5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex-shrink-0"></div>
-                <span>{COMPANY_INFO.address}</span>
+              <div className="flex flex-col">
+                <span className="text-2xl font-extrabold text-slate-900 tracking-tight leading-none">
+                  Lipink<span className="text-pink-600">.</span>
+                </span>
+                <span className="text-[10px] text-slate-500 font-bold tracking-widest uppercase">
+                  Parcel & Hampers
+                </span>
               </div>
             </div>
-          </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-6">Tautan Cepat</h4>
-            <ul className="space-y-3">
-              {QUICK_LINKS.map((link) => (
-                <li key={link.name}>
-                  <a
-                    href={link.href}
-                    className="text-gray-600 hover:text-pink-600 transition-colors duration-300 hover:translate-x-1 transform inline-block"
-                  >
-                    {link.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Social Media */}
-          <div>
-            <h4 className="text-lg font-semibold text-gray-900 mb-6">Ikuti Kami</h4>
-            <div className="space-y-4">
-              {Object.entries(SOCIAL_LINKS).map(([key, social]) => {
-                const IconComponent = social.icon
-                return (
-                  <a
-                    key={key}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-4 group hover:translate-x-2 transition-all duration-300"
-                  >
-                    <div
-                      className={`w-10 h-10 bg-gradient-to-r ${social.color} rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow duration-300`}
-                    >
-                      <IconComponent className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-gray-600 group-hover:text-gray-900 font-medium transition-colors duration-300">
-                      {social.label}
-                    </span>
-                  </a>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Newsletter Section */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-12 shadow-xl border border-pink-100">
-          <div className="text-center max-w-2xl mx-auto">
-            <h4 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-4">
-              Dapatkan Penawaran Spesial
-            </h4>
-            <p className="text-gray-600 mb-6 leading-relaxed">
-              Berlangganan newsletter kami untuk mendapatkan info produk terbaru, promo eksklusif, dan tips hadiah
-              menarik.
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Menyediakan parcel Lebaran, Natal, Imlek, dan Kado Spesial dengan sentuhan personal dan kualitas premium di Cirebon.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Masukkan email Anda"
-                className="flex-1 px-6 py-3 rounded-2xl border border-pink-200 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white/80 backdrop-blur-sm"
-              />
-              <button className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                Berlangganan
-              </button>
+            
+            <div className="space-y-4 pt-2">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-pink-600 shrink-0 mt-0.5" />
+                <span className="text-sm text-slate-600 leading-snug">{CONTACT_INFO.address}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-pink-600 shrink-0" />
+                <span className="text-sm font-bold text-slate-800">{CONTACT_INFO.phone}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Bottom Footer */}
-        <div className="border-t border-pink-200 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="text-center md:text-left">
-              <p className="text-gray-600">
-                © {currentYear} {COMPANY_INFO.name}. Semua hak dilindungi.
-              </p>
-              <p className="text-sm text-gray-500 mt-1">Dibuat dengan ❤️ untuk momen istimewa Anda</p>
-            </div>
-
-            {/* Social Icons Row */}
-            <div className="flex items-center gap-4">
-              {Object.entries(SOCIAL_LINKS).map(([key, social]) => {
-                const IconComponent = social.icon
-                return (
-                  <a
-                    key={key}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`w-12 h-12 bg-gradient-to-r ${social.color} rounded-full flex items-center justify-center hover:scale-110 transition-all duration-300 shadow-lg hover:shadow-xl`}
-                    title={social.label}
+          {/* COL 2: SOCIALS & MARKETPLACE (4 Cols) */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* Socials */}
+            <div>
+              <h4 className="font-bold text-slate-900 text-base mb-4">Ikuti Kami</h4>
+              <div className="flex gap-3">
+                {SOCIALS.map((social) => (
+                  <a 
+                    key={social.name} 
+                    href={social.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center border shadow-sm transition-all duration-200 hover:-translate-y-1 ${social.style}`}
+                    aria-label={social.name}
                   >
-                    <IconComponent className="w-5 h-5 text-white" />
+                    <social.icon className="w-5 h-5" />
                   </a>
-                )
-              })}
+                ))}
+              </div>
+            </div>
+
+            {/* Marketplaces */}
+            <div>
+              <h4 className="font-bold text-slate-900 text-base mb-4">Official Store</h4>
+              <div className="flex flex-col gap-3">
+                {MARKETPLACES.map((market) => (
+                  <a 
+                    key={market.name} 
+                    href={market.url} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="block group"
+                  >
+                    <div className={`flex items-center justify-between px-4 h-12 rounded-xl shadow-sm transition-transform hover:scale-[1.01] ${market.style}`}>
+                      <div className="flex items-center gap-3">
+                        <market.icon className="w-5 h-5" />
+                        <span className="font-semibold text-sm">Beli di {market.name}</span>
+                      </div>
+                      <ExternalLink className="w-3 h-3 opacity-60 group-hover:opacity-100" />
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
+
+          {/* COL 3: MAP (4 Cols) */}
+          <div className="lg:col-span-4">
+            <h4 className="font-bold text-slate-900 text-base mb-4">Lokasi Toko</h4>
+            <div className="rounded-xl overflow-hidden border border-slate-200 h-[220px] relative group bg-slate-50 shadow-inner">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63397.36884661832!2d108.49960287908674!3d-6.728850976340273!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e6ee332a98bcd4d%3A0xa312180f026abea6!2sParcel%20Cirebon%20%26%20Set%20Bekal%20Anak%20-%20HappyBear%20Giftland!5e0!3m2!1sen!2sid!4v1764092131318!5m2!1sen!2sid" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full grayscale-[10%] group-hover:grayscale-0 transition-all duration-500"
+              ></iframe>
+              
+              <div className="absolute bottom-3 left-3 right-3">
+                 <a href="https://share.google/USTQ0jAyd2IIoHRVJ" target="_blank" rel="noreferrer">
+                    <div className="bg-white/90 backdrop-blur-sm p-3 rounded-lg flex items-center justify-between cursor-pointer hover:bg-white transition-colors shadow-lg border border-slate-200/50">
+                       <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-pink-600" />
+                          <span className="text-xs font-bold text-slate-700">Buka di Google Maps</span>
+                       </div>
+                       <ArrowRight className="w-3 h-3 text-slate-400" />
+                    </div>
+                 </a>
+              </div>
+            </div>
+          </div>
+
         </div>
+
+        <Separator className="bg-slate-100 mb-8" />
+
+        {/* === BOTTOM SECTION === */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-slate-500 text-xs text-center md:text-left">
+            © {currentYear} <strong>Lipink Parcel Cirebon</strong>. All Rights Reserved.
+          </div>
+          
+          <div className="flex items-center gap-4 opacity-60">
+             <div className="flex items-center gap-1 text-slate-400">
+                <CreditCard className="w-4 h-4" />
+             </div>
+             <div className="flex items-center gap-1 text-slate-400">
+                <ShieldCheck className="w-4 h-4" />
+             </div>
+             <div className="flex items-center gap-1 text-slate-400">
+                <Truck className="w-4 h-4" />
+             </div>
+          </div>
+        </div>
+
       </div>
     </footer>
-  )
-}
+  );
+};

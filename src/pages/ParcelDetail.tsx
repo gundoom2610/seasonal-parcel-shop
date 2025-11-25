@@ -1,12 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { SEO } from '@/components/SEO';
+import { ParcelCard } from '@/components/ParcelCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, ArrowLeft, Share2, Heart, Clock, Package, Shield, Award, ChevronRight, Star, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Separator } from '@/components/ui/separator';
+import { 
+  MessageCircle, 
+  Heart, 
+  ShieldCheck, 
+  Store, 
+  MapPin, 
+  Truck, 
+  Star, 
+  ChevronRight, 
+  Minus, 
+  Plus,
+  TicketPercent,
+  Map,
+  Share2,
+  Check,
+  Copy,
+} from 'lucide-react';
 
+// --- INTERFACES ---
 interface Category {
   id: string;
   name: string;
@@ -21,6 +39,8 @@ interface Parcel {
   image_url: string;
   price: number;
   category: Category;
+  rating?: number;
+  reviews_count?: number;
   created_at: string;
 }
 
@@ -39,135 +59,127 @@ export const ParcelDetail = () => {
   const [relatedProducts, setRelatedProducts] = useState<Parcel[]>([]);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  
+  // Store Status State
+  const [isStoreOnline, setIsStoreOnline] = useState(false);
+  
+  // Share State
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
+  
+  // Review States
   const [reviews, setReviews] = useState<Review[]>([]);
   const [averageRating, setAverageRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
 
+  // --- CHECK SHOP STATUS ---
+  useEffect(() => {
+    const checkShopStatus = () => {
+      const now = new Date();
+      const hour = now.getHours();
+      // Online between 08:00 (8 AM) and 19:00 (7 PM)
+      const isOnline = hour >= 8 && hour < 19;
+      setIsStoreOnline(isOnline);
+    };
+    
+    checkShopStatus();
+    // Optional: Check every minute
+    const interval = setInterval(checkShopStatus, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // --- MOCK REVIEW GENERATOR ---
   const generateRandomReviews = () => {
-  const sampleNames = [
-    { name: "Siti N.*", gender: "female" },
-    { name: "Budi S.*", gender: "male" },
-    { name: "Maya S.*", gender: "female" },
-    { name: "Andi W.*", gender: "male" },
-    { name: "Rina K.*", gender: "female" },
-    { name: "Dedy P.*", gender: "male" },
-    { name: "Lina H.*", gender: "female" },
-    { name: "Rizki R.*", gender: "male" },
-    { name: "Dewi L.*", gender: "female" },
-    { name: "Agus S.*", gender: "male" },
-    { name: "Fitri H.*", gender: "female" },
-    { name: "Wahyu K.*", gender: "male" },
-    { name: "Sari I.*", gender: "female" },
-    { name: "Tono S.*", gender: "male" },
-    { name: "Ani R.*", gender: "female" },
-    { name: "Yusuf A.*", gender: "male" },
-    { name: "Dina M.*", gender: "female" },
-    { name: "Ilham J.*", gender: "male" },
-    { name: "Nina Z.*", gender: "female" },
-    { name: "Ardi F.*", gender: "male" },
-    { name: "Elsa N.*", gender: "female" },
-    { name: "Reza B.*", gender: "male" },
-    { name: "Tika Y.*", gender: "female" },
-    { name: "Galih C.*", gender: "male" },
-    { name: "Putri D.*", gender: "female" },
-    { name: "Fahmi E.*", gender: "male" },
-    { name: "Mega Q.*", gender: "female" },
-    { name: "Bayu T.*", gender: "male" },
-    { name: "Citra U.*", gender: "female" },
-    { name: "Joko M.*", gender: "male" },
-    { name: "Vina O.*", gender: "female" },
-    { name: "Hendra L.*", gender: "male" },
-    { name: "Ratna G.*", gender: "female" },
-    { name: "Zaki R.*", gender: "male" },
-    { name: "Winda E.*", gender: "female" },
-    { name: "Aldi V.*", gender: "male" },
-    { name: "Melati T.*", gender: "female" },
-    { name: "Rio H.*", gender: "male" },
-    { name: "Yuni S.*", gender: "female" },
-    { name: "Fajar K.*", gender: "male" }
-  ];
+    const sampleNames = [
+      { name: "Siti N.*", gender: "female" }, { name: "Budi S.*", gender: "male" },
+      { name: "Maya P.*", gender: "female" }, { name: "Andi W.*", gender: "male" },
+      { name: "Rina K.*", gender: "female" }, { name: "Dedy P.*", gender: "male" },
+      { name: "Lina H.*", gender: "female" }, { name: "Rizki R.*", gender: "male" },
+      { name: "Dewi L.*", gender: "female" }, { name: "Agus S.*", gender: "male" },
+      { name: "Fitri A.*", gender: "female" }, { name: "Wahyu K.*", gender: "male" },
+      { name: "Sari I.*", gender: "female" }, { name: "Tono B.*", gender: "male" },
+      { name: "Ani R.*", gender: "female" },   { name: "Yusuf A.*", gender: "male" },
+      { name: "Dina M.*", gender: "female" },  { name: "Ilham J.*", gender: "male" },
+      { name: "Nina Z.*", gender: "female" },  { name: "Ardi F.*", gender: "male" }
+    ];
 
-  const sampleComments = [
-    "Parcel Cirebon sangat rapi, cocok banget untuk kiriman bisnis maupun pribadi.",
-    "Terima kasih! Parcelnya indah, cocok untuk hampers lebaran.",
-    "Bisa request custom, seller sangat membantu. Parcel mewah tapi tetap terjangkau.",
-    "Parcel sudah sampai dengan selamat dan cantik banget packaging-nya!",
-    "Isian lengkap, kemasan eksklusif. Saya pesan lagi untuk nanti...",
-    "Sudah beberapa kali order, hasilnya selalu memuaskan!",
-    "Kualitas isiannya premium, dikemas dengan estetika yang tinggi.",
-    "Dikirim ke teman di luar kota, responnya sangat positif.",
-    "Tema parcel bisa disesuaikan, cocok untuk segala momen spesial.",
-    "Barang sesuai gambar, penataan isinya sangat niat!",
-    "Cocok untuk hadiah ultah atau parcel akhir tahun.",
-    "Saya order parcel Imlek, warnanya merah emas sangat elegan.",
-    "Waktu pengiriman cepat dan tepat, aman banget untuk dikirim jauh.",
-    "Seller ramah dan komunikatif, pengalaman belanja menyenangkan.",
-    "Parcelnya eksklusif tapi tetap affordable, sangat direkomendasikan.",
-    "Suka banget sama desain box-nya, unik dan berkelas.",
-    "Isi parcel fresh dan variasinya banyak, cocok untuk hampers keluarga.",
-    "Anak-anak pun senang dapat parcel ini, tampilannya menarik.",
-    "Saya pakai untuk parcel kantor, semua rekan kerja suka!",
-    "Parcel ini sangat berkesan, cocok untuk klien penting.",
-    "Kemasan kuat dan tidak rusak saat diterima.",
-    "Dekorasi isi parcel lucu, cocok untuk hampers anak-anak.",
-    "Pesan parcelnya untuk mama saya , beliau sangat senang dan tersentuh.",
-    "Sudah direkomendasikan ke teman-teman karena pelayanannya memuaskan.",
-    "Parcel ini pas banget untuk suasana hangat keluarga.",
-    "Setiap item dalam parcel terlihat berkualitas tinggi.",
-    "Saya pesan hari senin dan langsung sampai hari rabu ke saudara saya di Cirebon dan sangat bagus !",
-    "Parcel elegan, cocok buat relasi bisnis premium.",
-    "Beli parcel untuk istri, dia sangat suka! Romantis dan manis.",
-    "Parcel custom nya sangat menawan dan cocok untuk diberikan ke rekan bisnis.",
-    "Isiannya pas, nggak ada yang mubazir. Semua bisa dinikmati.",
-    "Seller kasih banyak opsi, tinggal pilih yang sesuai budget.",
-    "Parcel Cirebon terbaik sejauh ini! Rekomendasi nomor satu.",
-    "Kemasannya kaya retail branded, sangat profesional.",
-    "Parcel berkesan banget untuk hari spesial keluarga kami.",
-    "Beli untuk acara pengajian, semua tamu senang.",
-    "Warna, isi, dan tema parcel sangat dipikirkan. Tidak asal-asalan.",
-    "Paling suka karena bisa tulis ucapan di kartu kecil juga.",
-    "Kreatif dan tematik. Parcel yang benar-benar niat dibuat."
-  ];
+    const sampleComments = [
+      "Parcelnya cantik banget, rapi dan elegan. Suka sekali!",
+      "Pengiriman cepat, barang sampai dengan aman tanpa cacat.",
+      "Isian parcelnya premium semua, nggak malu-maluin buat dikasih ke orang.",
+      "Seller ramah banget, fast respon pas ditanya-tanya via WA.",
+      "Kemasannya mewah, pitanya cantik. Recommended seller!",
+      "Harganya terjangkau tapi kualitasnya bintang lima. Makasih ya!",
+      "Pas banget buat hadiah ke rekan kerja, kelihatan profesional.",
+      "Barang sesuai gambar, bahkan aslinya lebih bagus.",
+      "Suka banget sama penataan isinya, sangat estetik.",
+      "Udah langganan beli di sini, gapernah mengecewakan.",
+      "Cocok banget buat hantaran acara keluarga.",
+      "Kartu ucapannya juga bagus, tulisan rapi.",
+      "Dikirim ke luar kota aman banget, packingnya tebal.",
+      "Kelihatan mahal padahal harganya bersahabat.",
+      "Isiannya fresh dan tanggal kadaluarsanya masih lama semua.",
+      "Desain box-nya unik, beda dari toko lain.",
+      "Buat kado ulang tahun orang tua, mereka seneng banget.",
+      "Variasi isinya banyak, nggak ngebosenin.",
+      "Pesen dadakan pagi, sore udah sampai. Mantap pelayanannya.",
+      "Sangat membantu buat yang cari kado last minute.",
+      "Kombinasi warnanya cakep, elegan dan manis.",
+      "Kualitas keranjangnya kokoh, bisa dipake lagi.",
+      "Teman saya yang nerima seneng banget, katanya bagus.",
+      "Parcel terbaik di Cirebon sejauh ini.",
+      "Nggak nyesel beli di sini, bakal order lagi next time.",
+      "Simple tapi berkesan banget parcelnya.",
+      "Adminnya kooperatif banget bantuin pilih yang sesuai budget.",
+      "Pengemasan sangat niat, detailnya diperhatikan.",
+      "Juaranya parcel, isinya nggak ada yang zonk.",
+      "Terima kasih Lipink Parcel, sangat memuaskan!"
+    ];
 
-  const reviewCount = Math.floor(Math.random() * 36) + 10; // 10-45
-  const avgRating = (Math.random() * 0.2 + 4.7).toFixed(1); // 4.7 - 4.9
+    const reviewCount = Math.floor(Math.random() * 36) + 10; 
+    const avgRating = (Math.random() * 0.2 + 4.7).toFixed(1); 
+    
+    setTotalReviews(reviewCount);
+    setAverageRating(parseFloat(avgRating));
 
-  setTotalReviews(reviewCount);
-  setAverageRating(parseFloat(avgRating));
+    const generatedReviews: Review[] = [];
+    const visibleCount = Math.min(reviewCount, 8); 
 
-  const generatedReviews: Review[] = [];
+    for (let i = 0; i < visibleCount; i++) {
+      const rating = Math.random() < 0.8 ? 5 : 4; 
+      const { name, gender } = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+      const comment = sampleComments[Math.floor(Math.random() * sampleComments.length)];
 
-  for (let i = 0; i < Math.min(reviewCount, 6); i++) {
-    const rating = Math.random() < 0.7 ? 5 : 4;
-    const { name, gender } = sampleNames[Math.floor(Math.random() * sampleNames.length)];
-    const comment = sampleComments[Math.floor(Math.random() * sampleComments.length)];
+      const seed = encodeURIComponent(name.replace(/\s|\*/g, '') + i);
+      const headParam = gender === 'male'
+        ? 'short1,short2,short3,short4,shaved1,flatTop'
+        : 'bun,bun2,long,longCurly,medium1,medium2';
 
-  const seed = encodeURIComponent(name.replace(/\s|\*/g, ''));
-  const headParam = gender === 'male'
-    ? 'short1,short2,short3,short4,short5,shaved1,flatTop,mohawk,cornrows'
-    : 'bun,bun2,buns,long,longCurly,medium1,medium2,medium3,mediumStraight';
+      const avatarUrl = `https://api.dicebear.com/9.x/open-peeps/svg?seed=${seed}&head=${headParam}&face=smile,smileBig&skinColor=ffdbb4,edb98a`;
 
-  const avatarUrl = `https://api.dicebear.com/9.x/open-peeps/svg?seed=${seed}&head=${headParam}&face=smile,smileBig,calm&facialHairProbability=0&skinColor=ffdbb4,edb98a&hairColor=000000&accessoriesProbability=0&maskProbability=0&radius=50&size=128&clip=true`;
+      generatedReviews.push({
+        id: `review-${i}`,
+        name,
+        rating,
+        comment,
+        date: `${Math.floor(Math.random() * 6) + 1} hari lalu`,
+        avatar: avatarUrl
+      });
+    }
 
-    generatedReviews.push({
-      id: `review-${i}`,
-      name,
-      rating,
-      comment,
-      date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('id-ID'),
-      avatar: avatarUrl
-    });
-  }
-
-  setReviews(generatedReviews);
-};
+    setReviews(generatedReviews);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       if (!categorySlug || !parcelSlug) return;
-
       try {
-        // Fetch category first
+        setLoading(true);
+        window.scrollTo(0, 0);
+
+        // 1. Fetch Category ID
         const { data: categoryData } = await supabase
           .from('categories')
           .select('*')
@@ -175,13 +187,10 @@ export const ParcelDetail = () => {
           .single();
 
         if (categoryData) {
-          // Fetch current parcel
+          // 2. Fetch Parcel
           const { data: parcelData } = await supabase
             .from('parcels')
-            .select(`
-              *,
-              category:categories(id, name, slug)
-            `)
+            .select(`*, category:categories(id, name, slug)`)
             .eq('slug', parcelSlug)
             .eq('category_id', categoryData.id)
             .single();
@@ -190,13 +199,10 @@ export const ParcelDetail = () => {
             setParcel(parcelData);
             generateRandomReviews();
 
-            // Fetch other products in this category
+            // 3. Fetch Related
             const { data: relatedData } = await supabase
               .from('parcels')
-              .select(`
-                *,
-                category:categories(id, name, slug)
-              `)
+              .select(`*, category:categories(id, name, slug)`)
               .eq('category_id', categoryData.id)
               .neq('id', parcelData.id)
               .order('created_at', { ascending: false })
@@ -206,438 +212,427 @@ export const ParcelDetail = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Error:', error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [categorySlug, parcelSlug]);
 
+  // Close share menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (shareRef.current && !shareRef.current.contains(event.target as Node)) {
+        setIsShareOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // --- HELPERS ---
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
+    }).format(price).replace("Rp", "Rp");
   };
 
   const handleWhatsAppOrder = () => {
     if (!parcel) return;
-    
-    const message = `Halo saya mau pesan parcel "${parcel.name}"`;
-    const imageUrl = parcel.image_url || '/placeholder.svg';
-    
-    // For mobile WhatsApp, we'll use the web.whatsapp.com link with message and image
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}%0A%0A${encodeURIComponent(window.location.href)}`;
+    const currentUrl = window.location.href;
+    const message = `Halo Admin Lipink Parcel 👋\n\nSaya ingin memesan produk ini:\n\n🛍️ *${parcel.name}*\n💰 Harga: ${formatPrice(parcel.price)}\n📦 Jumlah: ${quantity} pcs\n\n🔗 Link Produk: ${currentUrl}\n\nMohon info stok dan total ongkir ke alamat saya ya. Terima kasih!`;
+    const whatsappUrl = `https://wa.me/628122208580?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
-  const handleShare = async () => {
+  // --- SHARE LOGIC ---
+  const handleShareClick = async () => {
     if (!parcel) return;
 
-    const shareData = {
-      title: parcel.name,
-      text: `Wah, produk ini bagus banget! 😍 ${parcel.name} - ${formatPrice(parcel.price)}. Yuk cek!`,
-      url: window.location.href,
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-        alert('Link berhasil disalin! 📋✨');
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: parcel.name,
+          text: `Cek produk ini: ${parcel.name} hanya ${formatPrice(parcel.price)} di Lipink Parcel!`,
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.log('Error sharing:', err);
       }
-    } catch (error) {
-      console.error('Error sharing:', error);
+    } else {
+      setIsShareOpen(!isShareOpen);
     }
   };
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${
-          i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-        }`}
-      />
-    ));
+  const shareToWhatsApp = () => {
+    if (!parcel) return;
+    const text = `Lihat produk ini deh: *${parcel.name}*\nHarga: ${formatPrice(parcel.price)}\nLink: ${window.location.href}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    setIsShareOpen(false);
   };
 
-  const getStructuredData = () => {
-    if (!parcel) return null;
-
-    return {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "name": parcel.name,
-      "image": parcel.image_url || `${window.location.origin}/placeholder.svg`,
-      "description": parcel.description,
-      "category": parcel.category.name,
-      "offers": {
-        "@type": "Offer",
-        "price": parcel.price.toString(),
-        "priceCurrency": "IDR",
-        "availability": "https://schema.org/InStock"
-      },
-      "brand": {
-        "@type": "Brand",
-        "name": "Seasonal Parcels"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": averageRating.toString(),
-        "reviewCount": totalReviews.toString()
-      }
-    };
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
+  // --- SKELETON LOADING ---
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              <div className="aspect-square bg-gradient-to-br from-slate-200 to-slate-300 rounded-3xl"></div>
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <div className="h-6 bg-slate-200 rounded w-1/4"></div>
-                  <div className="h-10 bg-slate-200 rounded w-3/4"></div>
-                  <div className="h-8 bg-slate-200 rounded w-1/3"></div>
-                </div>
-                <div className="space-y-3">
-                  <div className="h-6 bg-slate-200 rounded w-1/4"></div>
-                  <div className="h-32 bg-slate-200 rounded"></div>
-                </div>
-                <div className="space-y-3">
-                  <div className="h-14 bg-slate-200 rounded"></div>
-                  <div className="h-12 bg-slate-200 rounded"></div>
-                </div>
-              </div>
+      <div className="min-h-screen bg-slate-50 container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-5 h-[400px] bg-slate-200 rounded-xl animate-pulse" />
+            <div className="lg:col-span-7 space-y-4">
+                <div className="h-8 bg-slate-200 rounded w-3/4 animate-pulse" />
+                <div className="h-4 bg-slate-200 rounded w-1/4 animate-pulse" />
+                <div className="h-12 bg-slate-200 rounded w-1/2 animate-pulse" />
             </div>
-          </div>
         </div>
       </div>
     );
   }
 
-  if (!parcel) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center space-y-6">
-          <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-pink-100 rounded-full mx-auto flex items-center justify-center">
-            <Package className="h-10 w-10 text-red-400" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-slate-900">Produk Tidak Ditemukan</h1>
-            <p className="text-slate-600">Wah, produk yang kamu cari tidak ada nih 😔</p>
-          </div>
-          <Button asChild size="lg" className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white shadow-lg">
-            <Link to="/">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Kembali ke Beranda
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  if (!parcel) return null;
+
+  // Mock calculations
+  const originalPrice = parcel.price * 1.2;
+  const discount = 20;
 
   return (
     <>
       <SEO
-        title={`${parcel.name} - ${parcel.category.name}`}
+        title={`${parcel.name} | Lipink Parcel Cirebon`}
         description={parcel.description}
         ogImage={parcel.image_url}
         url={`/produk/${parcel.category.slug}/${parcel.slug}`}
-        structuredData={getStructuredData()}
       />
-      
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-red-50 to-pink-50">
-        <div className="container mx-auto px-4 py-8 pb-24 md:pb-8">
-          {/* Navigation */}
-          <div className="mb-8">
-            <Button variant="ghost" asChild className="text-slate-600 hover:text-slate-900 hover:bg-white/50">
-              <Link to={`/produk/${parcel.category.slug}`}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Kembali ke {parcel.category.name}
-              </Link>
-            </Button>
-          </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Product Image */}
-            <div className="relative">
-              <div className="aspect-square relative overflow-hidden rounded-3xl bg-white shadow-2xl">
-                <img
-                  src={parcel.image_url || '/placeholder.svg'}
-                  alt={parcel.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-6 left-6 right-6 flex justify-between items-start">
-                  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-medium shadow-lg">
-                    {parcel.category.name}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="bg-white/90 hover:bg-white shadow-lg"
-                    onClick={() => setIsFavorite(!isFavorite)}
-                  >
-                    <Heart className={`h-5 w-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-600'}`} />
-                  </Button>
-                </div>
-                
-                {/* Promo Badge */}
-                <div className="absolute bottom-6 left-6">
-                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-sm px-4 py-2 shadow-lg">
-                    🔥 PROMO TERBATAS!
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* Product Details */}
-            <div className="space-y-8">
-              {/* Header */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-                    <span className="text-orange-600 font-medium">Kontak kami untuk Stok</span>
-                  </div>
-                </div>
-                
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 leading-tight">
-                  {parcel.name}
-                </h1>
-                
-                {/* Rating */}
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    {renderStars(5)}
-                    <span className="text-sm font-medium text-slate-700 ml-1">
-                      {averageRating}
-                    </span>
-                  </div>
-                  <span className="text-sm text-slate-500">
-                    ({totalReviews} ulasan)
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent">
-                      {formatPrice(parcel.price)}
-                    </span>
-                    <span className="text-lg text-slate-500 line-through">
-                      {formatPrice(Math.floor(parcel.price * 1.25))}
-                    </span>
-                  </div>
-                  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold px-3 py-1">
-                    Hemat 20%
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2 p-3 bg-white/70 rounded-xl">
-                  <Shield className="h-5 w-5 text-green-500" />
-                  <div className="text-xs">
-                    <div className="font-medium">Garansi</div>
-                    <div className="text-slate-500">100% Asli</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-3 bg-white/70 rounded-xl">
-                  <Award className="h-5 w-5 text-purple-500" />
-                  <div className="text-xs">
-                  <div className="font-medium">Terpercaya di Cirebon</div>
-                  <div className="text-slate-500">Kualitas yang sudah terbukti</div>
-
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-slate-900">✨ Deskripsi Produk</h2>
-                <div className="bg-white/70 p-6 rounded-2xl">
-                  <p className="text-slate-700 leading-relaxed">
-                    {parcel.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Buttons - Hidden on Mobile */}
-              <div className="space-y-4 hidden md:block">
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={handleWhatsAppOrder}
-                    size="lg"
-                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg font-bold"
-                  >
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Pesan Sekarang via WA
-                  </Button>
-                  
-                  <Button 
-                    onClick={handleShare}
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-pink-200 hover:bg-pink-50 text-pink-600"
-                  >
-                    <Share2 className="h-5 w-5" />
-                  </Button>
-                </div>
-                
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>💬 Cara pesan gampang banget:</strong> Langsung klik tombol WhatsApp di atas! 
-                    Admin baik dan ramah, pasti bakal dibantu sampai deal 😊
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-20">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">⭐ Ulasan Pembeli</h2>
-              <div className="flex items-center gap-6 p-6 bg-white/70 rounded-2xl">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-slate-900">{averageRating}</div>
-                  <div className="flex items-center justify-center gap-1 mt-1">
-                    {renderStars(5)}
-                  </div>
-                  <div className="text-sm text-slate-500 mt-1">{totalReviews} ulasan</div>
-                </div>
-                <div className="flex-1">
-                  <div className="space-y-2">
-                    {[5, 4, 3, 2, 1].map((star) => {
-                      const percentage = star === 5 ? 85 : star === 4 ? 10 : 5;
-                      return (
-                        <div key={star} className="flex items-center gap-3">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm">{star}</span>
-                          </div>
-                          <div className="flex-1 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-yellow-400 h-2 rounded-full" 
-                              style={{ width: `${percentage}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm text-slate-500">{percentage}%</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {reviews.map((review) => (
-                <div key={review.id} className="bg-white/70 p-6 rounded-2xl">
-                  <div className="flex items-start gap-4">
-                    <img
-                      src={review.avatar}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-orange-100"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-slate-900">{review.name}</h4>
-                        <span className="text-sm text-slate-500">{review.date}</span>
-                      </div>
-                      <div className="flex items-center gap-1 mb-3">
-                        {renderStars(review.rating)}
-                      </div>
-                      <p className="text-slate-700 text-sm leading-relaxed">
-                        {review.comment}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Related Products */}
-          {relatedProducts.length > 0 && (
-            <div className="mt-20">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-slate-900">🔥 Produk Serupa yang Lagi Hits</h2>
-                <Button variant="ghost" asChild className="text-pink-600 hover:text-pink-700">
-                  <Link to={`/produk/${parcel.category.slug}`}>
-                    Lihat Semua
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Link>
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {relatedProducts.map((product) => (
-                  <Link 
-                    key={product.id}
-                    to={`/produk/${product.category.slug}/${product.slug}`}
-                    className="group"
-                  >
-                    <div className="bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
-                      <div className="aspect-square overflow-hidden">
-                        <img
-                          src={product.image_url || '/placeholder.svg'}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="p-4 space-y-2">
-                        <h3 className="font-semibold text-slate-900 line-clamp-2 group-hover:text-pink-600 transition-colors">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-pink-600">
-                            {formatPrice(product.price)}
-                          </span>
-                          <span className="text-sm text-slate-500 line-through">
-                            {formatPrice(Math.floor(product.price * 1.2))}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-sm text-slate-500">
-                          <span>Terjual 100+</span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+      <div className="min-h-screen bg-[#F5F5F5] pb-24 md:pb-12 font-sans">
         
-        {/* Sticky Bottom Button for Mobile */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-2xl md:hidden z-50">
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <div className="text-xs text-slate-500 mb-1">Harga</div>
-              <div className="text-lg font-bold text-pink-600">
-                {formatPrice(parcel.price)}
-              </div>
+        {/* BREADCRUMB */}
+        <div className="bg-white border-b border-gray-100 hidden md:block">
+            <div className="container mx-auto px-4 py-3 text-xs text-slate-500 flex items-center gap-2">
+                <Link to="/" className="hover:text-pink-600">Beranda</Link>
+                <ChevronRight className="w-3 h-3" />
+                <Link to={`/produk/${parcel.category.slug}`} className="hover:text-pink-600">{parcel.category.name}</Link>
+                <ChevronRight className="w-3 h-3" />
+                <span className="text-slate-900 font-medium truncate max-w-[200px]">{parcel.name}</span>
             </div>
-            <Button 
-              onClick={handleWhatsAppOrder}
-              size="lg"
-              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg font-bold px-8"
-            >
-              <MessageCircle className="h-5 w-5 mr-2" />
-              Order Sekarang
-            </Button>
-          </div>
         </div>
+
+        <div className="container mx-auto px-0 md:px-4 py-0 md:py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 lg:gap-6">
+            
+            {/* === LEFT COLUMN: SINGLE IMAGE === */}
+            <div className="lg:col-span-5">
+               <div className="bg-white md:rounded-2xl overflow-hidden sticky top-24 shadow-sm border border-slate-100">
+                  <div className="aspect-square relative group cursor-zoom-in bg-slate-50">
+                     <img 
+                        src={parcel.image_url} 
+                        alt={parcel.name} 
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                     />
+                     <div className="absolute bottom-4 left-4 flex gap-2">
+                        <Badge className="bg-black/70 backdrop-blur-md hover:bg-black/80 text-white border-0 px-3 py-1.5 flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-green-400" />
+                            100% Original
+                        </Badge>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* === RIGHT COLUMN: DETAILS === */}
+            <div className="lg:col-span-7">
+                {/* 1. Main Info Card */}
+                <div className="bg-white p-4 md:p-6 md:rounded-2xl shadow-sm border border-slate-100 mb-4">
+                    
+                    {/* Title & Share */}
+                    <div className="flex justify-between items-start gap-4 mb-2">
+                        <h1 className="text-xl md:text-2xl font-bold text-slate-800 leading-snug">
+                            {parcel.name}
+                        </h1>
+                        <button onClick={() => setIsFavorite(!isFavorite)} className="p-2 rounded-full hover:bg-pink-50 transition-colors">
+                            <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-slate-400'}`} />
+                        </button>
+                    </div>
+
+                    {/* Stats Row */}
+                    <div className="flex items-center gap-4 text-sm mb-4 border-b border-gray-100 pb-4">
+                        <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-bold text-slate-900 border-b border-slate-900">{averageRating}</span>
+                        </div>
+                        <Separator orientation="vertical" className="h-4" />
+                        <div className="flex items-center gap-1">
+                            <span className="font-bold text-slate-900 border-b border-slate-900">{totalReviews}</span>
+                            <span className="text-slate-500">Penilaian</span>
+                        </div>
+                        <Separator orientation="vertical" className="h-4" />
+                        <div className="text-slate-500">
+                            Terjual <span className="text-slate-900 font-bold">100+</span>
+                        </div>
+                    </div>
+
+                    {/* Price Section */}
+                    <div className="bg-pink-50/50 p-4 rounded-xl mb-6">
+                        <div className="flex items-end gap-3 mb-1">
+                            <h2 className="text-3xl font-bold text-red-600">
+                                {formatPrice(parcel.price)}
+                            </h2>
+                            <div className="mb-1.5 flex items-center gap-2">
+                                <span className="text-slate-400 line-through text-sm">{formatPrice(originalPrice)}</span>
+                                <Badge className="bg-red-100 text-red-600 hover:bg-red-200 border-0 font-bold">
+                                    {discount}% OFF
+                                </Badge>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-pink-600 font-medium">
+                            <TicketPercent className="w-3.5 h-3.5" />
+                            <span>Hemat {formatPrice(originalPrice - parcel.price)}</span>
+                        </div>
+                    </div>
+
+                    {/* Quantity Selector */}
+                    <div className="flex items-center justify-between md:justify-start gap-8 pt-2 mb-6">
+                        <span className="text-sm font-semibold text-slate-700">Jumlah:</span>
+                        <div className="flex items-center border border-slate-300 rounded-lg">
+                            <button 
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                className="p-2 hover:bg-slate-100 border-r border-slate-300 disabled:opacity-50 text-slate-600"
+                                disabled={quantity <= 1}
+                            >
+                                <Minus className="w-4 h-4" />
+                            </button>
+                            <input 
+                                type="text" 
+                                value={quantity} 
+                                readOnly 
+                                className="w-12 text-center text-sm font-bold text-slate-800 outline-none bg-transparent"
+                            />
+                            <button 
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="p-2 hover:bg-slate-100 border-l border-slate-300 text-slate-600"
+                            >
+                                <Plus className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <span className="text-xs text-slate-500">Stok Tersedia: 99+</span>
+                    </div>
+
+                    {/* === DESKTOP ACTION BUTTONS === */}
+                    <div className="hidden md:flex gap-3 pt-2 relative">
+                        <Button 
+                            onClick={handleWhatsAppOrder}
+                            size="lg"
+                            className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-bold h-12 text-base shadow-lg shadow-green-200"
+                        >
+                            <MessageCircle className="w-5 h-5 mr-2" />
+                            Beli Sekarang (WhatsApp)
+                        </Button>
+                        
+                        {/* Desktop Share Button */}
+                        <div className="relative" ref={shareRef}>
+                            <Button 
+                                onClick={handleShareClick}
+                                variant="outline"
+                                size="lg"
+                                className="h-12 px-6 border-slate-300 text-slate-600 hover:bg-slate-50"
+                            >
+                                <Share2 className="w-5 h-5" />
+                            </Button>
+
+                            {/* Desktop Share Dropdown */}
+                            {isShareOpen && (
+                                <div className="absolute bottom-full right-0 mb-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 p-2 z-50 animate-in fade-in zoom-in-95 origin-bottom-right">
+                                    <div className="text-xs font-bold text-slate-500 px-2 py-1 mb-1">Bagikan ke:</div>
+                                    
+                                    <button 
+                                        onClick={shareToWhatsApp}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-green-50 text-left rounded-lg transition-colors group"
+                                    >
+                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <MessageCircle className="w-4 h-4 text-green-600" />
+                                        </div>
+                                        <span className="text-sm font-medium text-slate-700 group-hover:text-green-700">WhatsApp</span>
+                                    </button>
+
+                                    <button 
+                                        onClick={copyLink}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 text-left rounded-lg transition-colors group"
+                                    >
+                                        <div className="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center">
+                                            {isCopied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-slate-600" />}
+                                        </div>
+                                        <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">
+                                            {isCopied ? 'Tersalin!' : 'Salin Link'}
+                                        </span>
+                                    </button>
+                                    
+                                    <div className="absolute -bottom-2 right-6 w-4 h-4 bg-white border-b border-r border-gray-100 transform rotate-45"></div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                </div>
+
+                {/* 2. Shop & Shipping Info */}
+                <div className="bg-white p-4 md:p-6 md:rounded-2xl shadow-sm border border-slate-100 mb-4 space-y-4">
+                    {/* Shop Info */}
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center text-pink-600">
+                            <Store className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-slate-800">Lipink Parcel Official</h3>
+                                <Badge className="bg-red-600 hover:bg-red-700 h-5 text-[10px]">Official</Badge>
+                            </div>
+                            
+                            {/* === DYNAMIC ONLINE STATUS === */}
+                            <div className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                <span className={`w-2.5 h-2.5 rounded-full inline-block ${isStoreOnline ? 'bg-green-500' : 'bg-slate-300'}`}></span>
+                                {isStoreOnline ? (
+                                    <span className="text-green-600 font-medium">Online</span>
+                                ) : (
+                                    <span className="text-slate-400">Offline (Buka 08.00 - 19.00)</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <Separator />
+
+                    {/* Shipping Info */}
+                    <div className="space-y-3">
+                         <div className="flex items-start gap-3">
+                             <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
+                             <div>
+                                 <p className="text-sm font-medium text-slate-700">Dikirim dari <span className="font-bold">Kota Cirebon</span></p>
+                             </div>
+                         </div>
+                         <div className="flex items-start gap-3">
+                             <Truck className="w-5 h-5 text-slate-400 mt-0.5" />
+                             <div className="flex-1">
+                                 <p className="text-sm font-medium text-slate-700">Ongkos Kirim</p>
+                                 <p className="text-xs text-slate-500 mt-0.5">Mulai dari Rp 10.000 ke tempatmu.</p>
+                             </div>
+                         </div>
+                    </div>
+
+                    {/* GOOGLE MAPS CTA */}
+                    <div className="mt-4 pt-2">
+                        <a 
+                            href="https://share.google/USTQ0jAyd2IIoHRVJ" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="block group"
+                        >
+                            <div className="bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl p-3 flex items-center gap-3 transition-colors cursor-pointer">
+                                <div className="bg-white p-2 rounded-full shadow-sm">
+                                    <Map className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-xs font-bold text-blue-700 mb-0.5 group-hover:underline decoration-blue-700">
+                                        Atau mau kunjungi langsung?
+                                    </p>
+                                    <p className="text-[11px] text-blue-600 leading-snug">
+                                        Anda di sekitar Cirebon? Yuk mampir ke toko offline kami! 📍
+                                    </p>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-blue-400" />
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                {/* 3. Description */}
+                <div className="bg-white p-4 md:p-6 md:rounded-2xl shadow-sm border border-slate-100 mb-4">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4">Deskripsi Produk</h3>
+                    <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed whitespace-pre-line">
+                        {parcel.description}
+                        <br/><br/>
+                        <p><strong>Spesifikasi:</strong></p>
+                        <ul className="list-disc pl-4 space-y-1">
+                            <li>Dibuat fresh setiap pesanan</li>
+                            <li>Bahan premium berkualitas</li>
+                            <li>Gratis kartu ucapan (Request via Chat)</li>
+                            <li>Packaging aman dengan bubble wrap tebal</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* 4. Reviews */}
+                <div className="bg-white p-4 md:p-6 md:rounded-2xl shadow-sm border border-slate-100 mb-4">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4">Ulasan Pembeli ({totalReviews})</h3>
+                    <div className="space-y-6">
+                        {reviews.slice(0, 3).map((review) => (
+                            <div key={review.id} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <img src={review.avatar} alt={review.name} className="w-8 h-8 rounded-full bg-slate-100" />
+                                    <div>
+                                        <p className="text-xs font-bold text-slate-800">{review.name}</p>
+                                        <div className="flex text-yellow-400 w-16">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star key={i} className={`w-3 h-3 ${i < review.rating ? 'fill-current' : 'text-slate-200'}`} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <span className="ml-auto text-xs text-slate-400">{review.date}</span>
+                                </div>
+                                <p className="text-sm text-slate-700">{review.comment}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <Button variant="outline" className="w-full mt-4 text-slate-600">Lihat Semua Ulasan</Button>
+                </div>
+
+            </div>
+          </div>
+
+          {/* === RELATED PRODUCTS === */}
+          {relatedProducts.length > 0 && (
+             <div className="mt-8 mb-24 md:mb-8">
+                 <h2 className="text-xl font-bold text-slate-900 mb-4 px-4 md:px-0">Mungkin Kamu Suka</h2>
+                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 px-4 md:px-0">
+                     {relatedProducts.map((product) => (
+                         <div key={product.id} className="h-full">
+                             <ParcelCard parcel={product} />
+                         </div>
+                     ))}
+                 </div>
+             </div>
+          )}
+
+        </div>
+
+        {/* === STICKY MOBILE ACTION BAR === */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 z-50 md:hidden pb-safe">
+            <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-3">
+                    <Button onClick={handleShareClick} variant="outline" className="w-full h-11 flex-col gap-0.5 text-[10px] text-slate-600 border-slate-300">
+                        <Share2 className="w-5 h-5" />
+                        Share
+                    </Button>
+                </div>
+                <div className="col-span-9">
+                    <Button 
+                        onClick={handleWhatsAppOrder}
+                        className="w-full h-11 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-bold"
+                    >
+                        Beli Sekarang
+                    </Button>
+                </div>
+            </div>
+        </div>
+
       </div>
     </>
   );
