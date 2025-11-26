@@ -212,7 +212,7 @@ export const Home = () => {
                   {/* Hero Image - Hidden on small mobile, visible on larger screens */}
                   <div className="absolute right-0 bottom-0 top-0 z-10 w-28 md:w-1/2 flex items-end justify-end pointer-events-none opacity-60 md:opacity-100">
                      <img 
-                        src="/hero-image.png" 
+                        src="/hero-image.avif" 
                         alt="Parcel Cirebon Terbaik" 
                         fetchPriority="high"
                         width="450"

@@ -11,6 +11,59 @@ import { useToast } from '@/hooks/use-toast';
 import { useSitemap } from '@/hooks/useSitemap';
 import { Plus, Edit2, Trash2, Upload, RefreshCw, Image as ImageIcon, Search } from 'lucide-react';
 
+// --- IMAGE COMPRESSION UTILITY ---
+const compressImage = (file: File): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxWidth = 800; // Resize to max 800px width
+        
+        // Calculate new dimensions
+        let newWidth = img.width;
+        let newHeight = img.height;
+        
+        if (img.width > maxWidth) {
+          const scaleFactor = maxWidth / img.width;
+          newWidth = maxWidth;
+          newHeight = img.height * scaleFactor;
+        }
+
+        canvas.width = newWidth;
+        canvas.height = newHeight;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Canvas context failed'));
+          return;
+        }
+
+        // Draw and compress
+        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+        
+        // Export as WebP at 80% quality
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Compression failed'));
+          },
+          'image/webp',
+          0.8
+        );
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
+// --- TYPES ---
 interface Category {
   id: string;
   name: string;
@@ -90,18 +143,30 @@ export const AdminParcels = () => {
     }));
   };
 
+  // --- MODIFIED UPLOAD HANDLER ---
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      // 1. Notify user compression is starting
+      toast({ title: "Optimizing...", description: "Compressing image for faster loading." });
+
+      // 2. Compress the image locally
+      const compressedBlob = await compressImage(file);
       
+      // 3. Prepare file for upload (use .webp extension)
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+      const compressedFile = new File([compressedBlob], fileName, { type: 'image/webp' });
+
+      // 4. Upload to Supabase
       const { error: uploadError } = await supabase.storage
         .from('products')
-        .upload(fileName, file, { upsert: true });
+        .upload(fileName, compressedFile, { 
+          upsert: true,
+          contentType: 'image/webp' 
+        });
 
       if (uploadError) throw uploadError;
 
@@ -111,7 +176,15 @@ export const AdminParcels = () => {
 
       setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
       
-      toast({ title: "Success", description: "Image uploaded successfully!" });
+      // 5. Calculate stats for the user
+      const originalSize = (file.size / 1024).toFixed(0);
+      const newSize = (compressedBlob.size / 1024).toFixed(0);
+
+      toast({ 
+        title: "Success", 
+        description: `Image optimized! Reduced from ${originalSize}KB to ${newSize}KB.` 
+      });
+
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
