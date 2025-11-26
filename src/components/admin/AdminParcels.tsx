@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useSitemap } from '@/hooks/useSitemap';
-import { Plus, Edit, Trash2, Upload, RefreshCw } from 'lucide-react';
+import { Plus, Edit2, Trash2, Upload, RefreshCw, Image as ImageIcon, Search } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -32,6 +32,9 @@ export const AdminParcels = () => {
   const [parcels, setParcels] = useState<Parcel[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Form State
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -40,10 +43,12 @@ export const AdminParcels = () => {
     category_id: '',
     image_url: ''
   });
+  
   const [editingParcel, setEditingParcel] = useState<Parcel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [regeneratingSitemap, setRegeneratingSitemap] = useState(false);
+  
   const { toast } = useToast();
   const { regenerateSitemap } = useSitemap();
 
@@ -56,10 +61,7 @@ export const AdminParcels = () => {
       const [parcelsResponse, categoriesResponse] = await Promise.all([
         supabase
           .from('parcels')
-          .select(`
-            *,
-            category:categories(id, name, slug)
-          `)
+          .select(`*, category:categories(id, name, slug)`)
           .order('created_at', { ascending: false }),
         supabase
           .from('categories')
@@ -99,7 +101,7 @@ export const AdminParcels = () => {
       
       const { error: uploadError } = await supabase.storage
         .from('products')
-        .upload(fileName, file);
+        .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -109,16 +111,9 @@ export const AdminParcels = () => {
 
       setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
       
-      toast({
-        title: "Success",
-        description: "Image uploaded successfully!",
-      });
+      toast({ title: "Success", description: "Image uploaded successfully!" });
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setUploading(false);
     }
@@ -126,51 +121,25 @@ export const AdminParcels = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const submitData = {
-      ...formData,
-      price: parseInt(formData.price)
-    };
+    const submitData = { ...formData, price: parseInt(formData.price) };
     
     try {
       if (editingParcel) {
-        const { error } = await supabase
-          .from('parcels')
-          .update(submitData)
-          .eq('id', editingParcel.id);
-        
+        const { error } = await supabase.from('parcels').update(submitData).eq('id', editingParcel.id);
         if (error) throw error;
-        
-        toast({
-          title: "Success",
-          description: "Parcel updated successfully!",
-        });
+        toast({ title: "Success", description: "Parcel updated successfully!" });
       } else {
-        const { error } = await supabase
-          .from('parcels')
-          .insert([submitData]);
-        
+        const { error } = await supabase.from('parcels').insert([submitData]);
         if (error) throw error;
-        
-        toast({
-          title: "Success",
-          description: "Parcel created successfully!",
-        });
+        toast({ title: "Success", description: "Parcel created successfully!" });
       }
       
       resetForm();
       setIsDialogOpen(false);
       fetchData();
-      
-      // Auto-regenerate sitemap after successful operation
       regenerateSitemap(false);
-      
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -189,229 +158,225 @@ export const AdminParcels = () => {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this parcel?')) return;
-    
     try {
-      const { error } = await supabase
-        .from('parcels')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from('parcels').delete().eq('id', id);
       if (error) throw error;
-      
-      toast({
-        title: "Success",
-        description: "Parcel deleted successfully!",
-      });
-      
+      toast({ title: "Success", description: "Parcel deleted successfully!" });
       fetchData();
-      
-      // Auto-regenerate sitemap after successful deletion
       regenerateSitemap(false);
-      
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
   const handleManualSitemapRegeneration = async () => {
     setRegeneratingSitemap(true);
-    try {
-      await regenerateSitemap(true);
-    } finally {
-      setRegeneratingSitemap(false);
-    }
+    try { await regenerateSitemap(true); } finally { setRegeneratingSitemap(false); }
   };
 
   const resetForm = () => {
-    setFormData({
-      name: '',
-      slug: '',
-      description: '',
-      price: '',
-      category_id: '',
-      image_url: ''
-    });
+    setFormData({ name: '', slug: '', description: '', price: '', category_id: '', image_url: '' });
     setEditingParcel(null);
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-    }).format(price);
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
   };
 
-  if (loading) {
-    return <div>Loading parcels...</div>;
-  }
+  const filteredParcels = parcels.filter(p => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) return <div className="p-8 text-center animate-pulse">Loading data...</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Parcels</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleManualSitemapRegeneration}
-            disabled={regeneratingSitemap}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${regeneratingSitemap ? 'animate-spin' : ''}`} />
-            {regeneratingSitemap ? 'Updating...' : 'Update Sitemap'}
-          </Button>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Parcel
+    <div className="min-h-screen bg-slate-50/50 pb-20">
+      {/* --- STICKY HEADER FOR MOBILE --- */}
+      <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-4 shadow-sm">
+        <div className="flex flex-col gap-4 max-w-7xl mx-auto">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800">Parcels</h2>
+              <p className="text-xs text-slate-500">{parcels.length} Items Total</p>
+            </div>
+            
+            <div className="flex gap-2">
+               {/* Sitemap Button - Hidden on small mobile to save space */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden md:flex"
+                onClick={handleManualSitemapRegeneration}
+                disabled={regeneratingSitemap}
+              >
+                <RefreshCw className={`h-3.5 w-3.5 mr-2 ${regeneratingSitemap ? 'animate-spin' : ''}`} />
+                {regeneratingSitemap ? 'Updating...' : 'Sitemap'}
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingParcel ? 'Edit Parcel' : 'Add New Parcel'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    required
-                  />
-                </div>
+
+              <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="bg-pink-600 hover:bg-pink-700 text-white shadow-md transition-all active:scale-95">
+                    <Plus className="h-5 w-5 md:mr-2" />
+                    <span className="hidden md:inline">Add New</span>
+                  </Button>
+                </DialogTrigger>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
-                  <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    rows={3}
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price (IDR)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category_id}
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="image">Product Image</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={uploading}
-                    />
-                    <Button type="button" disabled={uploading} variant="outline">
-                      <Upload className="h-4 w-4" />
+                {/* --- FORM DIALOG --- */}
+                <DialogContent className="max-w-md md:max-w-xl max-h-[90vh] overflow-y-auto rounded-xl">
+                  <DialogHeader>
+                    <DialogTitle>{editingParcel ? 'Edit Parcel' : 'Add New Parcel'}</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                    {/* Image Upload Area */}
+                    <div className="flex flex-col items-center justify-center gap-3 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-4">
+                        {formData.image_url ? (
+                          <div className="relative group w-32 h-32 md:w-40 md:h-40">
+                             <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover rounded-lg shadow-sm" />
+                             <label htmlFor="image-upload" className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-lg text-white font-medium text-xs">
+                                Change Image
+                             </label>
+                          </div>
+                        ) : (
+                          <div className="w-32 h-32 md:w-40 md:h-40 bg-slate-100 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="w-10 h-10 text-slate-300" />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                           <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="hidden" />
+                           {!formData.image_url && (
+                             <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById('image-upload')?.click()} disabled={uploading}>
+                               <Upload className="h-4 w-4 mr-2" /> Upload Image
+                             </Button>
+                           )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2 col-span-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input id="name" value={formData.name} onChange={(e) => handleNameChange(e.target.value)} required placeholder="e.g. Parcel Lebaran Gold" />
+                      </div>
+                      
+                      <div className="space-y-2 col-span-1">
+                         <Label htmlFor="category">Category</Label>
+                         <Select value={formData.category_id} onValueChange={(value) => setFormData(prev => ({ ...prev, category_id: value }))}>
+                          <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
+                          <SelectContent>
+                            {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2 col-span-1">
+                        <Label htmlFor="price">Price (IDR)</Label>
+                        <Input id="price" type="number" value={formData.price} onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))} required />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="slug" className="text-xs text-slate-500">Auto-generated Slug</Label>
+                      <Input id="slug" value={formData.slug} onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))} required className="bg-slate-50 font-mono text-xs" />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea id="description" value={formData.description} onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))} rows={3} placeholder="Product details..." />
+                    </div>
+                    
+                    <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700 mt-2">
+                      {editingParcel ? 'Save Changes' : 'Create Parcel'}
                     </Button>
-                  </div>
-                  {formData.image_url && (
-                    <img 
-                      src={formData.image_url} 
-                      alt="Preview" 
-                      className="w-32 h-32 object-cover rounded"
-                    />
-                  )}
-                </div>
-                
-                <Button type="submit" className="w-full">
-                  {editingParcel ? 'Update Parcel' : 'Create Parcel'}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+             <Input 
+                placeholder="Search parcels..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 bg-slate-50 border-slate-200"
+             />
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {parcels.map((parcel) => (
-          <Card key={parcel.id}>
-            <CardHeader>
-              <div className="aspect-video relative overflow-hidden rounded">
+      {/* --- GRID LAYOUT --- */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
+          {filteredParcels.map((parcel) => (
+            <div 
+              key={parcel.id} 
+              className="group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
+            >
+              {/* Image Container (1:1 Ratio) */}
+              <div className="aspect-square relative overflow-hidden bg-slate-100">
                 <img
                   src={parcel.image_url || '/placeholder.svg'}
                   alt={parcel.name}
-                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                 />
+                
+                {/* Badge Overlay */}
+                <div className="absolute top-2 left-2">
+                   <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-xs font-normal shadow-sm hover:bg-white text-slate-800">
+                     {parcel.category?.name}
+                   </Badge>
+                </div>
               </div>
-              <CardTitle className="flex justify-between items-start">
-                <div>
-                  <h3 className="text-lg">{parcel.name}</h3>
-                  <p className="text-sm text-muted-foreground font-normal">
-                    {parcel.category.name}
-                  </p>
+
+              {/* Content */}
+              <div className="p-3 md:p-4 flex flex-col flex-1 gap-1">
+                <h3 className="font-semibold text-slate-800 text-sm md:text-base line-clamp-1" title={parcel.name}>
+                  {parcel.name}
+                </h3>
+                <p className="text-pink-600 font-bold text-sm md:text-base">
+                  {formatPrice(parcel.price)}
+                </p>
+                
+                {/* Actions Footer */}
+                <div className="mt-auto pt-3 flex items-center justify-between gap-2 border-t border-slate-50">
+                  <span className="text-[10px] text-slate-400 font-mono truncate max-w-[60px]">
+                    {parcel.slug}
+                  </span>
+                  <div className="flex gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50"
+                      onClick={() => handleEdit(parcel)}
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-500 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => handleDelete(parcel.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(parcel)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDelete(parcel.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                {parcel.description}
-              </p>
-              <p className="font-bold text-primary">
-                {formatPrice(parcel.price)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Slug: {parcel.slug}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {filteredParcels.length === 0 && (
+           <div className="text-center py-20 text-slate-400">
+              <p>No parcels found matching "{searchTerm}"</p>
+           </div>
+        )}
       </div>
     </div>
   );
