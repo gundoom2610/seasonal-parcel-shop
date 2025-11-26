@@ -5,8 +5,8 @@ interface SEOProps {
   description: string;
   keywords?: string;
   url: string;
-  image?: string;   // Priority 1
-  ogImage?: string; // Priority 2 (Backup)
+  image?: string;   // Priority 1 (Specific Product Image)
+  ogImage?: string; // Priority 2 (Alias)
   type?: 'website' | 'article' | 'product';
   structuredData?: object;
   canonical?: string;
@@ -31,27 +31,25 @@ export const SEO = ({
   publishedTime,
   modifiedTime
 }: SEOProps) => {
-  // 1. Define Base URL
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://parcelcirebon.com';
+  // 1. Define Base URL (Updated to www)
+  const siteUrl = 'https://www.parcelcirebon.com';
 
-  // 2. Construct Full URL (Prevent double slashes or double domain)
+  // 2. Construct Full URL
   const fullUrl = url.startsWith('http') 
     ? url 
     : `${siteUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 
   const canonicalUrl = canonical || fullUrl;
 
-  // 3. --- IMAGE LOGIC ---
-  // Priority: image prop > ogImage prop > Default local image
+  // 3. Image Logic
   const imagePath = image || ogImage || "/og-image.png";
   
-  // Ensure image URL is absolute (Required for OG Tags)
-  // If it starts with http, use as is. If it's relative (like /og-image.png), prepend siteUrl.
+  // Ensure image is Absolute
   const finalImage = imagePath.startsWith('http') 
     ? imagePath 
     : `${siteUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
 
-  // 4. Schema Logic
+  // 4. Schema.org Structured Data
   const baseSchema = [
     {
       "@type": "WebSite",
@@ -68,9 +66,9 @@ export const SEO = ({
       "url": siteUrl,
       "logo": {
         "@type": "ImageObject",
-        "url": `${siteUrl}/logo.png`,
-        "width": 112,
-        "height": 112
+        "url": `${siteUrl}/og-image.png`, // UPDATED: Uses og-image.png
+        "width": 1200,
+        "height": 630
       },
       "sameAs": [
         "https://instagram.com/lipink2003",
@@ -80,7 +78,7 @@ export const SEO = ({
     }
   ];
 
-  // Local Business Schema (Default for non-product pages)
+  // Schema for Homepage/General Pages
   const localBusinessSchema = {
     "@type": "LocalBusiness",
     "@id": `${siteUrl}/#localbusiness`,
@@ -114,21 +112,25 @@ export const SEO = ({
 
   return (
     <Helmet>
+      {/* Basic Meta */}
       <title>{title}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
       <meta name="author" content={author} />
       <link rel="canonical" href={canonicalUrl} />
       
+      {/* Robots */}
       <meta name="robots" content={noindex ? "noindex,nofollow" : "index,follow"} />
       
-      {/* Open Graph / Facebook / WhatsApp */}
+      {/* Open Graph */}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
       <meta property="og:url" content={fullUrl} />
       <meta property="og:image" content={finalImage} />
       <meta property="og:image:secure_url" content={finalImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
       <meta property="og:site_name" content="Lipink Parcel Cirebon" />
       <meta property="og:locale" content="id_ID" />
       
@@ -138,6 +140,11 @@ export const SEO = ({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={finalImage} />
       
+      {/* Article Meta (Optional) */}
+      {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+      {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+
+      {/* JSON-LD */}
       <script type="application/ld+json">
         {JSON.stringify(finalJsonLd)}
       </script>
