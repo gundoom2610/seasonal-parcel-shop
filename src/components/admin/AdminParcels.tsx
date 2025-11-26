@@ -88,7 +88,7 @@ export const AdminParcels = () => {
     name: '',
     slug: '',
     description: '',
-    price: '', // This stores the raw numeric string (e.g. "100000")
+    price: '',
     category_id: '',
     image_url: ''
   });
@@ -127,19 +127,20 @@ export const AdminParcels = () => {
     }
   };
 
+  // Helper to generate slug
   const generateSlug = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   };
 
+  // Update both Name and Slug in state (Slug is hidden from UI but present in data)
   const handleNameChange = (name: string) => {
     setFormData(prev => ({
       ...prev,
       name,
-      slug: generateSlug(name)
+      slug: generateSlug(name) // Automatically updates slug in background
     }));
   };
 
-  // --- IMAGE UPLOAD HANDLER ---
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -176,7 +177,6 @@ export const AdminParcels = () => {
     }
   };
 
-  // --- HANDLE SUBMIT ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -189,7 +189,6 @@ export const AdminParcels = () => {
       return;
     }
 
-    // Safely parse the raw price string to an integer
     const priceInt = formData.price ? parseInt(formData.price) : 0;
     const submitData = { ...formData, price: priceInt };
     
@@ -253,10 +252,8 @@ export const AdminParcels = () => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
   };
 
-  // --- HELPER FOR INPUT DISPLAY ---
   const formatInputPrice = (val: string) => {
     if (!val) return '';
-    // Format raw number string to "100.000"
     return new Intl.NumberFormat('id-ID').format(Number(val));
   };
 
@@ -305,7 +302,6 @@ export const AdminParcels = () => {
                     <DialogTitle>{editingParcel ? 'Edit Parcel' : 'Add New Parcel'}</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-                    {/* Image Upload Area */}
                     <div className="flex flex-col items-center justify-center gap-3 bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl p-4">
                         {formData.image_url ? (
                           <div className="relative group w-32 h-32 md:w-40 md:h-40">
@@ -345,16 +341,14 @@ export const AdminParcels = () => {
                         </Select>
                       </div>
 
-                      {/* --- MODIFIED PRICE INPUT --- */}
                       <div className="space-y-2 col-span-1">
                         <Label htmlFor="price">Price (IDR)</Label>
                         <Input 
                           id="price" 
-                          type="text" // Changed from number to text
+                          type="text"
                           placeholder="0"
-                          value={formatInputPrice(formData.price)} // Show dotted format (100.000)
+                          value={formatInputPrice(formData.price)} 
                           onChange={(e) => {
-                            // Remove non-numeric characters (dots) to save raw number
                             const rawValue = e.target.value.replace(/\D/g, '');
                             setFormData(prev => ({ ...prev, price: rawValue }));
                           }}
@@ -363,10 +357,7 @@ export const AdminParcels = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="slug" className="text-xs text-slate-500">Auto-generated Slug</Label>
-                      <Input id="slug" value={formData.slug} onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))} required className="bg-slate-50 font-mono text-xs" />
-                    </div>
+                    {/* SLUG INPUT REMOVED - Auto generated in background */}
                     
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
