@@ -48,31 +48,32 @@ interface Parcel {
   created_at?: string
 }
 
-// SEO Configuration Constants
-const SEO_CONFIG = {
-  siteName: "Toko Hampers Premium Cirebon",
-  siteUrl: "https://tokohampers-cirebon.com",
-  businessName: "Toko Hampers Premium",
+export const SEO_CONFIG = {
+  siteName: "Lipink Parcel Cirebon",
+  siteUrl: "https://parcelcirebon.com",
+  businessName: "Lipink Parcel Cirebon",
   businessType: "LocalBusiness",
-  areaServed: ["Cirebon", "Majalengka", "Indramayu"],
+  areaServed: ["Cirebon", "Majalengka", "Indramayu", "Kuningan"],
   description:
-    "Toko hampers dan hadiah premium terpercaya di Cirebon dengan pengiriman ke seluruh kota Cirebon dan wilayah 3 Cirebon seperti Majalengka, Indramayu.",
+    "Pusat Parcel & Hampers Terlengkap di Cirebon. Menyediakan parcel Lebaran, Natal, Imlek, dan Kado Spesial dengan kualitas premium dan pengiriman aman ke seluruh wilayah Ciayumajakuning.",
   keywords:
-    "hampers cirebon, hadiah premium, kado ulang tahun, hampers majalengka, hampers indramayu, toko hadiah cirebon",
-  author: "Toko Hampers Premium Cirebon",
-  telephone: "+62 812-3456-7890",
-  email: "hello@tokohampers-cirebon.com",
+    "parcel cirebon, hampers cirebon, toko parcel cirebon, parcel lebaran cirebon, parcel natal cirebon, parcel imlek cirebon, hampers majalengka, hampers indramayu, kado cirebon",
+  author: "Lipink Parcel Cirebon",
+  telephone: "+62 812-2220-8580",
+  email: "hello@parcelcirebon.com",
   address: {
-    streetAddress: "Jl. Raya Cirebon No. 123",
-    addressLocality: "Cirebon",
+    streetAddress: "Jl. Garuda No.4, Pekiringan, Kec. Kesambi",
+    addressLocality: "Kota Cirebon",
     addressRegion: "Jawa Barat",
-    postalCode: "45111",
+    postalCode: "45131",
     addressCountry: "ID",
   },
   socialMedia: {
-    instagram: "https://instagram.com/tokohampers_cirebon",
-    facebook: "https://facebook.com/tokohamperspremiumcirebon",
-    whatsapp: "https://wa.me/6281234567890",
+    instagram: "https://www.instagram.com/lipink2003/",
+    facebook: "https://m.facebook.com/happybeargiftland/",
+    whatsapp: "https://api.whatsapp.com/send?phone=628122208580",
+    shopee: "https://shopee.co.id/lipink2003",
+    tokopedia: "https://www.tokopedia.com/giftland",
   },
 }
 

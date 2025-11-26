@@ -5,8 +5,8 @@ interface SEOProps {
   description: string;
   keywords?: string;
   url: string;
-  image?: string;
-  ogImage?: string;
+  image?: string;   // Priority 1
+  ogImage?: string; // Priority 2 (Backup)
   type?: 'website' | 'article' | 'product';
   structuredData?: object;
   canonical?: string;
@@ -31,16 +31,27 @@ export const SEO = ({
   publishedTime,
   modifiedTime
 }: SEOProps) => {
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://lipinkparcel.com';
-  const fullUrl = `${siteUrl}${url}`;
+  // 1. Define Base URL
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://parcelcirebon.com';
+
+  // 2. Construct Full URL (Prevent double slashes or double domain)
+  const fullUrl = url.startsWith('http') 
+    ? url 
+    : `${siteUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+
   const canonicalUrl = canonical || fullUrl;
 
-  // Image Logic
-  const rawImage = image || ogImage || "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=1200&h=630&fit=crop&auto=format";
-  const finalImage = rawImage.startsWith('http') ? rawImage : `${siteUrl}${rawImage}`;
+  // 3. --- IMAGE LOGIC ---
+  // Priority: image prop > ogImage prop > Default local image
+  const imagePath = image || ogImage || "/og-image.png";
+  
+  // Ensure image URL is absolute (Required for OG Tags)
+  // If it starts with http, use as is. If it's relative (like /og-image.png), prepend siteUrl.
+  const finalImage = imagePath.startsWith('http') 
+    ? imagePath 
+    : `${siteUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
 
-  // --- 1. BASE SCHEMA (Organization/Website) ---
-  // Used on every page
+  // 4. Schema Logic
   const baseSchema = [
     {
       "@type": "WebSite",
@@ -48,14 +59,7 @@ export const SEO = ({
       "url": siteUrl,
       "name": "Lipink Parcel Cirebon",
       "description": description,
-      "publisher": {
-        "@id": `${siteUrl}/#organization`
-      },
-      "potentialAction": {
-        "@type": "SearchAction",
-        "target": `${siteUrl}/?q={search_term_string}`,
-        "query-input": "required name=search_term_string"
-      }
+      "publisher": { "@id": `${siteUrl}/#organization` }
     },
     {
       "@type": "Organization",
@@ -76,14 +80,14 @@ export const SEO = ({
     }
   ];
 
-  // --- 2. LOCAL BUSINESS SCHEMA (Homepage Only) ---
+  // Local Business Schema (Default for non-product pages)
   const localBusinessSchema = {
     "@type": "LocalBusiness",
     "@id": `${siteUrl}/#localbusiness`,
     "name": "Lipink Parcel Cirebon",
     "image": finalImage,
     "telephone": "+62-812-2220-8580",
-    "email": "hello@lipinkparcel.com",
+    "email": "hello@parcelcirebon.com",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Jl. Garuda No.4, Pekiringan",
@@ -92,37 +96,14 @@ export const SEO = ({
       "postalCode": "45131",
       "addressCountry": "ID"
     },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": -6.7063,
-      "longitude": 108.5492
-    },
-    "openingHoursSpecification": {
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": [
-        "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-      ],
-      "opens": "08:00",
-      "closes": "20:00"
-    },
-    "priceRange": "Rp 50.000 - Rp 2.000.000",
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.9",
-      "reviewCount": "1200",
-      "bestRating": "5",
-      "worstRating": "1"
-    }
+    "priceRange": "Rp 50.000 - Rp 2.000.000"
   };
 
-  // --- 3. CONSTRUCT FINAL GRAPH ---
   let graphData = [...baseSchema];
 
   if (type === 'product' && structuredData) {
-    // If it's a product page, add the specific Product schema passed from parent
     graphData.push(structuredData as any);
   } else {
-    // If it's homepage or other pages, add LocalBusiness
     graphData.push(localBusinessSchema as any);
   }
 
@@ -133,17 +114,15 @@ export const SEO = ({
 
   return (
     <Helmet>
-      {/* Standard Meta Tags */}
       <title>{title}</title>
       <meta name="description" content={description} />
       {keywords && <meta name="keywords" content={keywords} />}
       <meta name="author" content={author} />
       <link rel="canonical" href={canonicalUrl} />
       
-      {/* Robots */}
       <meta name="robots" content={noindex ? "noindex,nofollow" : "index,follow"} />
       
-      {/* Open Graph */}
+      {/* Open Graph / Facebook / WhatsApp */}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content={type} />
@@ -159,7 +138,6 @@ export const SEO = ({
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={finalImage} />
       
-      {/* JSON-LD Structured Data */}
       <script type="application/ld+json">
         {JSON.stringify(finalJsonLd)}
       </script>
