@@ -217,7 +217,7 @@ export const Home = () => {
                         fetchPriority="high"
                         width="450"
                         height="450"
-                        className="h-full w-auto object-cover object-left md:h-auto md:w-96 md:object-contain md:translate-y-6" 
+                        className="h-full w-auto object-cover object-center md:h-auto md:w-96 md:object-contain md:translate-y-6" 
                      />
                   </div>
                 </div>
