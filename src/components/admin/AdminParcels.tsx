@@ -23,9 +23,7 @@ const compressImage = (file: File): Promise<Blob> => {
       
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const maxWidth = 800; // Resize to max 800px width
-        
-        // Calculate new dimensions
+        const maxWidth = 800;
         let newWidth = img.width;
         let newHeight = img.height;
         
@@ -44,10 +42,8 @@ const compressImage = (file: File): Promise<Blob> => {
           return;
         }
 
-        // Draw and compress
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
         
-        // Export as WebP at 80% quality
         canvas.toBlob(
           (blob) => {
             if (blob) resolve(blob);
@@ -92,7 +88,7 @@ export const AdminParcels = () => {
     name: '',
     slug: '',
     description: '',
-    price: '',
+    price: '', // This stores the raw numeric string (e.g. "100000")
     category_id: '',
     image_url: ''
   });
@@ -143,40 +139,28 @@ export const AdminParcels = () => {
     }));
   };
 
-  // --- MODIFIED UPLOAD HANDLER ---
+  // --- IMAGE UPLOAD HANDLER ---
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
-      // 1. Notify user compression is starting
       toast({ title: "Optimizing...", description: "Compressing image for faster loading." });
-
-      // 2. Compress the image locally
       const compressedBlob = await compressImage(file);
-      
-      // 3. Prepare file for upload (use .webp extension)
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
       const compressedFile = new File([compressedBlob], fileName, { type: 'image/webp' });
 
-      // 4. Upload to Supabase
       const { error: uploadError } = await supabase.storage
         .from('products')
-        .upload(fileName, compressedFile, { 
-          upsert: true,
-          contentType: 'image/webp' 
-        });
+        .upload(fileName, compressedFile, { upsert: true, contentType: 'image/webp' });
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from('products')
-        .getPublicUrl(fileName);
+      const { data } = supabase.storage.from('products').getPublicUrl(fileName);
 
       setFormData(prev => ({ ...prev, image_url: data.publicUrl }));
       
-      // 5. Calculate stats for the user
       const originalSize = (file.size / 1024).toFixed(0);
       const newSize = (compressedBlob.size / 1024).toFixed(0);
 
@@ -192,9 +176,22 @@ export const AdminParcels = () => {
     }
   };
 
+  // --- HANDLE SUBMIT ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const submitData = { ...formData, price: parseInt(formData.price) };
+
+    if (!formData.category_id) {
+      toast({
+        title: "Validation Error",
+        description: "Please select a category before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Safely parse the raw price string to an integer
+    const priceInt = formData.price ? parseInt(formData.price) : 0;
+    const submitData = { ...formData, price: priceInt };
     
     try {
       if (editingParcel) {
@@ -256,6 +253,13 @@ export const AdminParcels = () => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
   };
 
+  // --- HELPER FOR INPUT DISPLAY ---
+  const formatInputPrice = (val: string) => {
+    if (!val) return '';
+    // Format raw number string to "100.000"
+    return new Intl.NumberFormat('id-ID').format(Number(val));
+  };
+
   const filteredParcels = parcels.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.category?.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -265,7 +269,6 @@ export const AdminParcels = () => {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
-      {/* --- STICKY HEADER FOR MOBILE --- */}
       <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-4 shadow-sm">
         <div className="flex flex-col gap-4 max-w-7xl mx-auto">
           <div className="flex justify-between items-center">
@@ -275,7 +278,6 @@ export const AdminParcels = () => {
             </div>
             
             <div className="flex gap-2">
-               {/* Sitemap Button - Hidden on small mobile to save space */}
               <Button
                 variant="outline"
                 size="sm"
@@ -298,7 +300,6 @@ export const AdminParcels = () => {
                   </Button>
                 </DialogTrigger>
                 
-                {/* --- FORM DIALOG --- */}
                 <DialogContent className="max-w-md md:max-w-xl max-h-[90vh] overflow-y-auto rounded-xl">
                   <DialogHeader>
                     <DialogTitle>{editingParcel ? 'Edit Parcel' : 'Add New Parcel'}</DialogTitle>
@@ -344,9 +345,21 @@ export const AdminParcels = () => {
                         </Select>
                       </div>
 
+                      {/* --- MODIFIED PRICE INPUT --- */}
                       <div className="space-y-2 col-span-1">
                         <Label htmlFor="price">Price (IDR)</Label>
-                        <Input id="price" type="number" value={formData.price} onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))} required />
+                        <Input 
+                          id="price" 
+                          type="text" // Changed from number to text
+                          placeholder="0"
+                          value={formatInputPrice(formData.price)} // Show dotted format (100.000)
+                          onChange={(e) => {
+                            // Remove non-numeric characters (dots) to save raw number
+                            const rawValue = e.target.value.replace(/\D/g, '');
+                            setFormData(prev => ({ ...prev, price: rawValue }));
+                          }}
+                          required 
+                        />
                       </div>
                     </div>
 
@@ -369,7 +382,6 @@ export const AdminParcels = () => {
             </div>
           </div>
 
-          {/* Search Bar */}
           <div className="relative">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
              <Input 
@@ -382,7 +394,6 @@ export const AdminParcels = () => {
         </div>
       </div>
 
-      {/* --- GRID LAYOUT --- */}
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-6">
           {filteredParcels.map((parcel) => (
@@ -390,7 +401,6 @@ export const AdminParcels = () => {
               key={parcel.id} 
               className="group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col"
             >
-              {/* Image Container (1:1 Ratio) */}
               <div className="aspect-square relative overflow-hidden bg-slate-100">
                 <img
                   src={parcel.image_url || '/placeholder.svg'}
@@ -398,8 +408,6 @@ export const AdminParcels = () => {
                   loading="lazy"
                   className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                 />
-                
-                {/* Badge Overlay */}
                 <div className="absolute top-2 left-2">
                    <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-xs font-normal shadow-sm hover:bg-white text-slate-800">
                      {parcel.category?.name}
@@ -407,7 +415,6 @@ export const AdminParcels = () => {
                 </div>
               </div>
 
-              {/* Content */}
               <div className="p-3 md:p-4 flex flex-col flex-1 gap-1">
                 <h3 className="font-semibold text-slate-800 text-sm md:text-base line-clamp-1" title={parcel.name}>
                   {parcel.name}
@@ -416,7 +423,6 @@ export const AdminParcels = () => {
                   {formatPrice(parcel.price)}
                 </p>
                 
-                {/* Actions Footer */}
                 <div className="mt-auto pt-3 flex items-center justify-between gap-2 border-t border-slate-50">
                   <span className="text-[10px] text-slate-400 font-mono truncate max-w-[60px]">
                     {parcel.slug}
