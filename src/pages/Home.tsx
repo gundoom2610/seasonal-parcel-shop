@@ -12,7 +12,8 @@ import {
   ChevronRight,
   Search,
   PackageX,
-  Sparkles
+  Sparkles,
+  MessageCircle
 } from "lucide-react"
 import { createWhatsAppUrl } from "@/constants/whatsapp"
 
@@ -75,13 +76,11 @@ export const Home = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [loading, setLoading] = useState(true)
 
-  // --- 1. SMART SEO GENERATOR (OPTIMIZED 50-60 CHARS) ---
+  // --- 1. SMART SEO GENERATOR (OPTIMIZED) ---
   const seoData = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
 
     // A. Default Home SEO
-    // Logic: Brand + Main Keyword + Location
-    // Length: ~52 chars
     if (!query) {
       return {
         title: "Toko Parcel & Hampers Cirebon Terlengkap | Lipink",
@@ -92,7 +91,6 @@ export const Home = () => {
     // B. Holiday Specific SEO
     
     // 🎄 Natal SEO
-    // Length: ~55 chars
     if (query.includes('natal') || query.includes('christmas')) {
       return {
         title: "Jual Parcel Natal & Hampers Christmas Cirebon 2024",
@@ -101,7 +99,6 @@ export const Home = () => {
     }
 
     // 🕌 Lebaran SEO
-    // Length: ~58 chars
     if (query.includes('lebaran') || query.includes('fitri') || query.includes('idul')) {
       return {
         title: "Jual Parcel Lebaran Cirebon & Hampers Idul Fitri",
@@ -110,7 +107,6 @@ export const Home = () => {
     }
 
     // 🧧 Imlek SEO
-    // Length: ~50 chars
     if (query.includes('imlek') || query.includes('sincia') || query.includes('chinese')) {
       return {
         title: "Jual Parcel Imlek & Hampers Sincia Cirebon Hoki",
@@ -118,8 +114,7 @@ export const Home = () => {
       }
     }
 
-    // 🔍 Generic Search SEO
-    // Template: "Jual [Keyword] Cirebon Murah | Lipink"
+    // 🔍 Generic Search SEO (Catch-all)
     const capitalizedQuery = searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1);
     return {
       title: `Jual ${capitalizedQuery} Cirebon Murah & Lengkap | Lipink`,
@@ -130,6 +125,8 @@ export const Home = () => {
 
   // --- DATA FETCHING ---
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       try {
         setLoading(true)
@@ -138,7 +135,7 @@ export const Home = () => {
         // 1. SEARCH MODE
         // -------------------------------------------
         if (searchQuery) {
-          setIsSearching(true)
+          if (isMounted) setIsSearching(true)
           
           // Step A: Find Categories matching the query first
           const { data: matchingCategories } = await supabase
@@ -165,23 +162,25 @@ export const Home = () => {
           const { data, error } = await query
 
           if (error) throw error
-          setSearchResults(data || [])
           
-          setLoading(false)
+          if (isMounted) {
+            setSearchResults(data || [])
+            setLoading(false)
+          }
           return 
         }
 
         // -------------------------------------------
         // 2. NORMAL HOMEPAGE MODE
         // -------------------------------------------
-        setIsSearching(false)
+        if (isMounted) setIsSearching(false)
 
         const { data: categoriesData } = await supabase
           .from("categories")
           .select("*")
           .order("name", { ascending: true })
 
-        if (categoriesData) setCategories(categoriesData)
+        if (categoriesData && isMounted) setCategories(categoriesData)
 
         const { data: featuredData } = await supabase
           .from("parcels")
@@ -189,7 +188,7 @@ export const Home = () => {
           .limit(10)
           .order("created_at", { ascending: false })
 
-        if (featuredData) setFeaturedParcels(featuredData)
+        if (featuredData && isMounted) setFeaturedParcels(featuredData)
 
         if (categoriesData) {
           const catsWithProducts = await Promise.all(
@@ -203,17 +202,23 @@ export const Home = () => {
               return { ...category, parcels: pData || [] }
             })
           )
-          setCategoriesWithParcels(catsWithProducts.filter(c => c.parcels && c.parcels.length > 0))
+          if (isMounted) {
+            setCategoriesWithParcels(catsWithProducts.filter(c => c.parcels && c.parcels.length > 0))
+          }
         }
 
-        setLoading(false)
+        if (isMounted) setLoading(false)
       } catch (error) {
         console.error("Error loading data:", error)
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [searchQuery])
 
   // --- VIEW: LOADING ---
