@@ -73,16 +73,16 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
   const savings = originalPrice - currentPrice
 
   return (
-    <Card className="group relative flex flex-col w-full h-full overflow-hidden rounded-lg bg-white border border-slate-100 shadow-sm hover:shadow-[0_4px_20px_rgb(0,0,0,0.1)] hover:-translate-y-1 transition-all duration-300">
+    <Card className="group relative flex flex-col w-full h-full overflow-hidden rounded-xl md:rounded-2xl bg-white border border-slate-100/80 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
       
       <Link to={`/produk/${parcel.category.slug}/${parcel.slug}`} className="flex flex-col h-full">
         
         {/* === IMAGE SECTION === */}
-        <div className="relative aspect-square w-full bg-slate-50 overflow-hidden">
+        <div className="relative aspect-square w-full bg-gradient-to-br from-slate-50 to-slate-100/50 overflow-hidden rounded-t-xl md:rounded-t-2xl">
           <img
             src={parcel.image_url || "/placeholder.svg?height=400&width=400"}
             alt={parcel.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
           
@@ -107,10 +107,10 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
         </div>
 
         {/* === CONTENT SECTION === */}
-        <CardContent className="flex flex-col p-2.5 md:p-3 gap-1 flex-1">
+        <CardContent className="flex flex-col p-2.5 md:p-3.5 gap-1 flex-1 bg-white">
           
           {/* Title */}
-          <h3 className="text-xs md:text-sm text-slate-800 font-normal leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-red-600 transition-colors">
+          <h3 className="text-xs md:text-sm text-slate-700 font-medium leading-snug line-clamp-2 min-h-[2.5em] group-hover:text-pink-600 transition-colors">
             {parcel.name}
           </h3>
 
@@ -135,18 +135,18 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
           </div>
 
           {/* Location & Trust Signals */}
-          <div className="mt-2 flex items-center gap-1 text-[10px] text-slate-500">
-             <MapPin className="w-3 h-3 text-slate-400" />
+          <div className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-500">
+             <MapPin className="w-3 h-3 text-pink-400" />
              <span className="truncate">Kota Cirebon</span>
           </div>
 
           {/* Rating & Sold (Bottom Row) */}
-          <div className="mt-auto pt-2 flex items-center gap-2 border-t border-slate-50/50">
+          <div className="mt-auto pt-2 flex items-center gap-2 border-t border-slate-100">
              <div className="flex items-center gap-0.5">
-                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                <span className="text-[10px] md:text-xs text-slate-700">{rating}</span>
+                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                <span className="text-[10px] md:text-xs font-medium text-slate-700">{rating}</span>
              </div>
-             <span className="text-[10px] text-slate-300">|</span>
+             <span className="text-[10px] text-slate-200">|</span>
              <div className="text-[10px] md:text-xs text-slate-500">
                 Terjual {formatSold(soldCount)}
              </div>
@@ -155,11 +155,11 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
         </CardContent>
 
         {/* === ACTION BUTTON === */}
-        <div className="px-2.5 pb-3 md:px-3 md:pb-3 mt-auto">
+        <div className="px-2.5 pb-2.5 md:px-3.5 md:pb-3 mt-auto bg-white">
           <Button
             onClick={handleWhatsAppOrder}
             variant="outline"
-            className="w-full h-8 text-xs font-bold border-green-600 text-green-600 hover:bg-green-600 hover:text-white transition-all rounded-md flex items-center justify-center gap-1.5"
+            className="w-full h-8 md:h-9 text-xs font-bold border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all rounded-lg flex items-center justify-center gap-1.5"
           >
             <MessageCircle className="w-3.5 h-3.5" />
             Beli Sekarang
