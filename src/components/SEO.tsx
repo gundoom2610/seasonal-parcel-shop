@@ -84,7 +84,7 @@ export const SEO = ({
     "@id": `${siteUrl}/#localbusiness`,
     "name": "Lipink Parcel Cirebon",
     "image": finalImage,
-    "telephone": "+62-812-2220-8580",
+    "telephone": "+62-812-220-8580",
     "email": "hello@parcelcirebon.com",
     "address": {
       "@type": "PostalAddress",

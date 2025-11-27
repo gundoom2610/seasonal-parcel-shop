@@ -22,7 +22,7 @@ export const Footer = () => {
   // Data Configuration
   const CONTACT_INFO = {
     address: "Jl. Garuda No.4, Pekiringan, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131 (Area Jakarta Intl Denso Cirebon)",
-    phone: "+62 812-2220-8580",
+    phone: "+62 812-220-8580",
   };
 
   const SOCIALS = [
