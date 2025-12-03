@@ -10,7 +10,8 @@ import {
   Sparkles,
   Search,
   Phone,
-  HelpCircle
+  HelpCircle,
+  BookOpen
 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
@@ -287,6 +288,18 @@ export const Navbar = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Separator */}
+                  <div className="h-6 w-px bg-slate-200 mx-2" />
+
+                  {/* Blog Link - Differentiated */}
+                  <Link
+                    to="/blog"
+                    className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium bg-gradient-to-r from-purple-50 to-pink-50 text-purple-600 hover:from-purple-100 hover:to-pink-100 border border-purple-100 rounded-lg transition-all duration-200"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Blog
+                  </Link>
                 </>
               )}
             </div>
@@ -348,7 +361,25 @@ export const Navbar = () => {
                )}
             </div>
 
-            {/* 2. Help / Contact Section */}
+            {/* 2. Blog Link */}
+            <div>
+               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Artikel & Tips</h3>
+               <Link
+                 to="/blog"
+                 className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-pink-50 to-purple-50 hover:from-pink-100 hover:to-purple-100 border border-pink-100 rounded-xl transition-all active:scale-95"
+                 onClick={() => setMobileMenuOpen(false)}
+               >
+                 <div className="p-2 bg-white rounded-lg shadow-sm">
+                   <BookOpen className="w-5 h-5 text-pink-600" />
+                 </div>
+                 <div>
+                   <span className="text-sm font-semibold text-slate-800">Blog</span>
+                   <p className="text-xs text-slate-500">Tips memilih parcel & inspirasi hadiah</p>
+                 </div>
+               </Link>
+            </div>
+
+            {/* 3. Help / Contact Section */}
             <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
                <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-white rounded-full text-blue-600 shadow-sm">

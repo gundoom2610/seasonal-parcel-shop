@@ -11,6 +11,8 @@ import { Auth } from "@/pages/Auth";
 import { Admin } from "@/pages/Admin";
 import { CategoryPage } from "@/pages/CategoryPage";
 import { ParcelDetail } from "@/pages/ParcelDetail";
+import { BlogList } from "@/pages/BlogList";
+import { BlogDetail } from "@/pages/BlogDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
               <Route path="/admin" element={<Admin />} />
               <Route path="/produk/:categorySlug" element={<CategoryPage />} />
               <Route path="/produk/:categorySlug/:parcelSlug" element={<ParcelDetail />} />
+              <Route path="/blog" element={<BlogList />} />
+              <Route path="/blog/:slug" element={<BlogDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

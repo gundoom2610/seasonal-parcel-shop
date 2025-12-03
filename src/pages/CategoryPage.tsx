@@ -1,11 +1,14 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from "react"
+import { useParams, Link } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { SEO } from "@/components/SEO"
 import { ParcelCard } from "@/components/ParcelCard"
-import { Footer } from "@/components/Footer"
+import { getOptimizedImage } from "@/utils/imageOptimizer"
+
+// Lazy load Footer for better initial load
+const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })))
 import {
   Grid,
   SortAsc,
@@ -48,9 +51,25 @@ interface Parcel {
   created_at?: string
 }
 
+// SEO Keywords for better search visibility
+const CATEGORY_SEO_KEYWORDS = {
+  lebaran: "parcel lebaran cirebon, hampers lebaran, parcel idul fitri, kado lebaran, bingkisan lebaran cirebon",
+  natal: "parcel natal cirebon, hampers natal, kado natal, bingkisan natal, christmas gift cirebon",
+  imlek: "parcel imlek cirebon, hampers imlek, kado sincia, bingkisan imlek, chinese new year gift cirebon",
+  default: "parcel cirebon, hampers cirebon, toko parcel, jual parcel, bingkisan cirebon"
+};
+
+const getCategoryKeywords = (categoryName: string): string => {
+  const lower = categoryName.toLowerCase();
+  if (lower.includes('lebaran')) return CATEGORY_SEO_KEYWORDS.lebaran;
+  if (lower.includes('natal')) return CATEGORY_SEO_KEYWORDS.natal;
+  if (lower.includes('imlek')) return CATEGORY_SEO_KEYWORDS.imlek;
+  return CATEGORY_SEO_KEYWORDS.default;
+};
+
 export const SEO_CONFIG = {
   siteName: "Lipink Parcel Cirebon",
-  siteUrl: "https://parcelcirebon.com",
+  siteUrl: "https://www.parcelcirebon.com",
   businessName: "Lipink Parcel Cirebon",
   businessType: "LocalBusiness",
   areaServed: ["Cirebon", "Majalengka", "Indramayu", "Kuningan"],
@@ -189,6 +208,59 @@ export const CategoryPage = () => {
   const [selectedRating, setSelectedRating] = useState<number>(0)
   const [showDiscountOnly, setShowDiscountOnly] = useState(false)
 
+  // Sort options - defined as constant
+  const sortOptions = [
+    { value: "newest", label: "Terbaru" },
+    { value: "price_low", label: "Harga Terendah" },
+    { value: "price_high", label: "Harga Tertinggi" },
+    { value: "popular", label: "Terpopuler" },
+  ]
+
+  // Memoize expensive calculations - MUST be before any early returns
+  const { minPrice, maxPrice, avgRating } = useMemo(() => {
+    if (parcels.length === 0) return { minPrice: 0, maxPrice: 0, avgRating: 4.5 }
+    const prices = parcels.map(p => p.price)
+    return {
+      minPrice: Math.min(...prices),
+      maxPrice: Math.max(...prices),
+      avgRating: Math.round((parcels.reduce((acc, p) => acc + (p.rating || 4.5), 0) / parcels.length) * 10) / 10
+    }
+  }, [parcels])
+
+  // Memoize SEO data for this category
+  const categoryKeywords = useMemo(() => 
+    category ? getCategoryKeywords(category.name) : CATEGORY_SEO_KEYWORDS.default
+  , [category])
+
+  // Memoize active filters count
+  const activeFiltersCount = useMemo(() =>
+    (selectedRating > 0 ? 1 : 0) +
+    (showDiscountOnly ? 1 : 0) +
+    (priceRange[0] !== minPrice || priceRange[1] !== maxPrice ? 1 : 0)
+  , [selectedRating, showDiscountOnly, priceRange, minPrice, maxPrice])
+
+  // Memoized filter and sort parcels for performance
+  const filteredAndSortedParcels = useMemo(() => {
+    return [...parcels]
+      .filter((parcel) => {
+        if (parcel.price < priceRange[0] || parcel.price > priceRange[1]) return false
+        if (selectedRating > 0 && selectedRating < 4 && (parcel.rating || 0) < selectedRating) return false
+        return true
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case "price_low":
+            return a.price - b.price
+          case "price_high":
+            return b.price - a.price
+          case "popular":
+            return (b.reviews_count || 0) - (a.reviews_count || 0)
+          default:
+            return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime()
+        }
+      })
+  }, [parcels, priceRange, selectedRating, sortBy])
+
   // Optimized data fetching with proper loading states
   useEffect(() => {
     const fetchData = async () => {
@@ -249,33 +321,6 @@ export const CategoryPage = () => {
       })
     }
   }, [categorySlug])
-
-  // Filter and sort parcels
-  const filteredAndSortedParcels = [...parcels]
-    .filter((parcel) => {
-      // Price filter
-      if (parcel.price < priceRange[0] || parcel.price > priceRange[1]) return false
-
-      // Rating filter - 4 stars shows all, others filter normally
-      if (selectedRating > 0 && selectedRating < 4 && (parcel.rating || 0) < selectedRating) return false
-
-      // Discount filter - show all products when discount filter is selected
-      // if (showDiscountOnly && (!parcel.discount_percentage || parcel.discount_percentage <= 0)) return false
-
-      return true
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "price_low":
-          return a.price - b.price
-        case "price_high":
-          return b.price - a.price
-        case "popular":
-          return (b.reviews_count || 0) - (a.reviews_count || 0)
-        default:
-          return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime()
-      }
-    })
 
   // Loading skeleton for initial page load
   if (loading) {
@@ -345,35 +390,16 @@ export const CategoryPage = () => {
     )
   }
 
-  const sortOptions = [
-    { value: "newest", label: "Terbaru" },
-    { value: "price_low", label: "Harga Terendah" },
-    { value: "price_high", label: "Harga Tertinggi" },
-    { value: "popular", label: "Terpopuler" },
-  ]
-
-  const minPrice = parcels.length > 0 ? Math.min(...parcels.map((p) => p.price)) : 0
-  const maxPrice = parcels.length > 0 ? Math.max(...parcels.map((p) => p.price)) : 0
-  const discountedProducts = parcels.filter((p) => p.discount_percentage && p.discount_percentage > 0).length
-  const avgRating =
-    parcels.length > 0
-      ? Math.round((parcels.reduce((acc, p) => acc + (p.rating || 4.5), 0) / parcels.length) * 10) / 10
-      : 4.5
-
-  const activeFiltersCount =
-    (selectedRating > 0 ? 1 : 0) +
-    (showDiscountOnly ? 1 : 0) +
-    (priceRange[0] !== minPrice || priceRange[1] !== maxPrice ? 1 : 0)
-
   return (
     <>
       <SEO
-        title={`${category.name} Premium - ${SEO_CONFIG.siteName}`}
-        description={`Jelajahi ${parcels.length}+ produk ${category.name} berkualitas premium di ${SEO_CONFIG.businessName}. Harga mulai Rp${minPrice.toLocaleString("id-ID")}. ${SEO_CONFIG.description}`}
-        url={`${SEO_CONFIG.siteUrl}/produk/${category.slug}`}
+        title={`Jual ${category.name} Cirebon Terlengkap & Murah | ${SEO_CONFIG.siteName}`}
+        description={`Beli ${category.name} berkualitas premium di ${SEO_CONFIG.businessName}. ✓ ${parcels.length}+ pilihan produk ✓ Harga mulai Rp${minPrice.toLocaleString("id-ID")} ✓ Pengiriman Cirebon, Majalengka, Indramayu. Pesan sekarang!`}
+        url={`/produk/${category.slug}`}
+        canonical={`${SEO_CONFIG.siteUrl}/produk/${category.slug}`}
         image={category.image_url}
         type="website"
-        keywords={`${category.name}, ${SEO_CONFIG.keywords}, ${category.slug}`}
+        keywords={`${category.name}, ${categoryKeywords}, ${SEO_CONFIG.keywords}`}
       />
       {dataLoaded && (
         <script
@@ -681,10 +707,20 @@ export const CategoryPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-6 mb-16">
-              {filteredAndSortedParcels.map((parcel) => (
-                <div key={parcel.id} className="group transform transition-all duration-300 hover:scale-105">
-                  <ParcelCard parcel={parcel} />
-                </div>
+              {filteredAndSortedParcels.map((parcel, index) => (
+                <article 
+                  key={parcel.id} 
+                  className="group transform transition-all duration-300 hover:scale-[1.02]"
+                  itemScope 
+                  itemType="https://schema.org/Product"
+                >
+                  <ParcelCard 
+                    parcel={{
+                      ...parcel,
+                      image_url: getOptimizedImage(parcel.image_url, index < 4 ? 400 : 300)
+                    }} 
+                  />
+                </article>
               ))}
             </div>
           )}
@@ -898,7 +934,9 @@ export const CategoryPage = () => {
         </div>
       </div>
 
-      <Footer />
+      <Suspense fallback={<div className="h-24 bg-white" />}>
+        <Footer />
+      </Suspense>
     </>
   )
 }

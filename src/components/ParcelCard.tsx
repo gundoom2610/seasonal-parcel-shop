@@ -1,5 +1,6 @@
 "use client"
 
+import { memo, useState } from "react"
 import { Link } from "react-router-dom"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,7 +28,10 @@ interface ParcelCardProps {
   parcel: Parcel
 }
 
-export const ParcelCard = ({ parcel }: ParcelCardProps) => {
+export const ParcelCard = memo(({ parcel }: ParcelCardProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageError, setImageError] = useState(false)
+  
   // Format Price: Rp 150.000
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -71,6 +75,9 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
   const currentPrice = parcel.price
   const originalPrice = Math.round(currentPrice / (1 - discountPercentage / 100))
   const savings = originalPrice - currentPrice
+  
+  // Optimized image URL with fallback
+  const imageSrc = imageError ? "/placeholder.svg?height=400&width=400" : (parcel.image_url || "/placeholder.svg?height=400&width=400")
 
   return (
     <Card className="group relative flex flex-col w-full h-full overflow-hidden rounded-xl md:rounded-2xl bg-white border border-slate-100/80 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
@@ -79,11 +86,22 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
         
         {/* === IMAGE SECTION === */}
         <div className="relative aspect-square w-full bg-gradient-to-br from-slate-50 to-slate-100/50 overflow-hidden rounded-t-xl md:rounded-t-2xl">
+          {/* Skeleton placeholder while loading */}
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-slate-100 animate-pulse" />
+          )}
           <img
-            src={parcel.image_url || "/placeholder.svg?height=400&width=400"}
+            src={imageSrc}
             alt={parcel.name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`w-full h-full object-cover transition-all duration-500 group-hover:scale-105 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
             loading="lazy"
+            decoding="async"
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
+            width={400}
+            height={400}
           />
           
           {/* === SHOPEE STYLE PROMO TAG (Top Right) === */}
@@ -169,4 +187,4 @@ export const ParcelCard = ({ parcel }: ParcelCardProps) => {
       </Link>
     </Card>
   )
-}
+})

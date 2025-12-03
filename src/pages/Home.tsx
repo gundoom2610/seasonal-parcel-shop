@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, lazy, Suspense, memo } from "react"
+import { useState, useEffect, useMemo, lazy, Suspense } from "react"
 import { Link, useSearchParams } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { SEO } from "@/components/SEO"
@@ -20,8 +20,60 @@ import { getOptimizedImage } from "@/utils/imageOptimizer"
 // --- LAZY LOAD COMPONENTS ---
 const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })));
 
-// --- MEMOIZED CARD ---
-const MemoizedParcelCard = memo(ParcelCard);
+// --- SEASONAL CONFIG ---
+type SeasonType = 'imlek' | 'lebaran' | 'natal' | 'general';
+
+interface SeasonConfig {
+  keywords: string[];
+  title: string;
+  emoji: string;
+  gradient: string;
+}
+
+const SEASONAL_CONFIG: Record<SeasonType, SeasonConfig> = {
+  imlek: {
+    keywords: ['imlek', 'chinese new year', 'sincia'],
+    title: 'Koleksi Spesial Imlek',
+    emoji: '🧧',
+    gradient: 'from-red-500 to-amber-500'
+  },
+  lebaran: {
+    keywords: ['lebaran', 'idul fitri', 'ramadan', 'ramadhan'],
+    title: 'Koleksi Spesial Lebaran',
+    emoji: '🕌',
+    gradient: 'from-emerald-500 to-teal-500'
+  },
+  natal: {
+    keywords: ['natal', 'christmas', 'xmas'],
+    title: 'Koleksi Spesial Natal',
+    emoji: '🎄',
+    gradient: 'from-red-500 to-green-600'
+  },
+  general: {
+    keywords: [],
+    title: 'Koleksi Parcel Cirebon Terlaris',
+    emoji: '🎁',
+    gradient: 'from-pink-500 to-rose-500'
+  }
+};
+
+// Get current season based on month
+const getCurrentSeason = (): SeasonType => {
+  const month = new Date().getMonth() + 1; // 1-12
+  
+  // January - February: Imlek season
+  if (month >= 1 && month <= 2) return 'imlek';
+  
+  // February - March (overlaps with Imlek end): Lebaran prep
+  // March - April: Lebaran (typically Ramadan ends March/April)
+  if (month >= 2 && month <= 4) return 'lebaran';
+  
+  // December: Natal season
+  if (month === 12) return 'natal';
+  
+  // Default for other months
+  return 'general';
+};
 
 // --- SEO CONFIG ---
 const SEO_CONFIG = {
@@ -35,6 +87,9 @@ const SEO_CONFIG = {
 // --- TYPES ---
 interface Category { id: string; name: string; slug: string; parcels?: Parcel[] }
 interface Parcel { id: string; name: string; slug: string; description: string; image_url: string; price: number; category: { id: string; name: string; slug: string }; created_at?: string; rating?: number; reviews_count?: number; }
+
+// --- SEO KEYWORDS ---
+const SEO_KEYWORDS = "parcel cirebon, hampers cirebon, parcel lebaran cirebon, parcel natal cirebon, parcel imlek cirebon, jual parcel cirebon, toko parcel cirebon, parcel murah cirebon, hampers lebaran, hampers natal, hampers imlek, parcel makanan cirebon, parcel keramik cirebon, lipink parcel";
 
 const getCategoryEmoji = (name: string) => {
   const lower = name.toLowerCase()
@@ -55,25 +110,41 @@ export const Home = () => {
   
   const [categoriesWithParcels, setCategoriesWithParcels] = useState<Category[]>([])
   const [featuredParcels, setFeaturedParcels] = useState<Parcel[]>([])
+  const [seasonalParcels, setSeasonalParcels] = useState<Parcel[]>([])
   const [searchResults, setSearchResults] = useState<Parcel[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [loading, setLoading] = useState(true)
+  
+  // Get current season
+  const currentSeason = useMemo(() => getCurrentSeason(), [])
+  const seasonConfig = SEASONAL_CONFIG[currentSeason]
 
   // --- SEO LOGIC ---
   const seoData = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
+    
+    // Get seasonal SEO boost
+    const seasonalSEO = {
+      imlek: { suffix: "Hampers Imlek", desc: "Parcel Imlek premium" },
+      lebaran: { suffix: "Hampers Lebaran", desc: "Parcel Lebaran premium" },
+      natal: { suffix: "Hampers Natal", desc: "Parcel Natal premium" },
+      general: { suffix: "Hampers Premium", desc: "Parcel premium" }
+    }[currentSeason]
+    
     if (!query) {
       return {
-        title: "Parcel Terbaik Cirebon & Hampers Keluarga Terlengkap | Lipink",
-        description: "Cari Parcel Terbaik di Cirebon? Lipink Parcel menyediakan hampers silaturahmi untuk keluarga dan kerabat. Parcel Lebaran, Natal & Imlek Premium."
+        title: `Parcel Terbaik Cirebon & ${seasonalSEO.suffix} Terlengkap | Lipink`,
+        description: `Cari Parcel Terbaik di Cirebon? Lipink Parcel menyediakan ${seasonalSEO.desc} untuk silaturahmi keluarga dan kerabat. Harga mulai Rp50.000. Gratis ongkir area Cirebon!`,
+        keywords: SEO_KEYWORDS
       }
     }
     const capitalizedQuery = searchQuery.charAt(0).toUpperCase() + searchQuery.slice(1);
     return {
       title: `Jual ${capitalizedQuery} Cirebon Murah & Lengkap | Lipink`,
-      description: `Dapatkan penawaran harga terbaik untuk ${searchQuery} di Lipink Parcel Cirebon. Kualitas premium untuk silaturahmi keluarga.`
+      description: `Dapatkan penawaran harga terbaik untuk ${searchQuery} di Lipink Parcel Cirebon. Kualitas premium untuk silaturahmi keluarga. Tersedia ${seasonalSEO.desc}.`,
+      keywords: `${searchQuery}, ${SEO_KEYWORDS}`
     }
-  }, [searchQuery]);
+  }, [searchQuery, currentSeason]);
 
   // --- DATA FETCHING ---
   useEffect(() => {
@@ -109,12 +180,51 @@ export const Home = () => {
         // 2. HOMEPAGE LOGIC
         if (isMounted) setIsSearching(false)
 
-        const [categoriesRes, featuredRes] = await Promise.all([
+        // Build seasonal query based on current season
+        const buildSeasonalQuery = () => {
+          const config = SEASONAL_CONFIG[currentSeason]
+          if (currentSeason === 'general' || config.keywords.length === 0) {
+            // Fallback: get latest parcels
+            return supabase
+              .from("parcels")
+              .select(`*, category:categories(id, name, slug)`)
+              .limit(10)
+              .order("created_at", { ascending: false })
+          }
+          
+          // Search for seasonal parcels by category name containing keywords
+          // First get matching category IDs
+          return supabase
+            .from("categories")
+            .select("id, name")
+            .or(config.keywords.map(k => `name.ilike.%${k}%`).join(','))
+        }
+
+        const [categoriesRes, featuredRes, seasonalCategoriesRes] = await Promise.all([
           supabase.from("categories").select("*").order("name", { ascending: true }),
-          supabase.from("parcels").select(`*, category:categories(id, name, slug)`).limit(10).order("created_at", { ascending: false })
+          supabase.from("parcels").select(`*, category:categories(id, name, slug)`).limit(10).order("created_at", { ascending: false }),
+          buildSeasonalQuery()
         ]);
 
         if (featuredRes.data && isMounted) setFeaturedParcels(featuredRes.data);
+        
+        // Fetch seasonal parcels if we found matching categories
+        if (currentSeason !== 'general' && seasonalCategoriesRes.data && 'id' in (seasonalCategoriesRes.data[0] || {})) {
+          const categoryIds = (seasonalCategoriesRes.data as { id: string }[]).map(c => c.id)
+          if (categoryIds.length > 0) {
+            const { data: seasonalData } = await supabase
+              .from("parcels")
+              .select(`*, category:categories(id, name, slug)`)
+              .in('category_id', categoryIds)
+              .limit(10)
+              .order("created_at", { ascending: false })
+            
+            if (seasonalData && isMounted) setSeasonalParcels(seasonalData)
+          }
+        } else if (seasonalCategoriesRes.data && isMounted) {
+          // For general season, the query already returned parcels
+          setSeasonalParcels(seasonalCategoriesRes.data as Parcel[])
+        }
         
         if (categoriesRes.data) {
           const catsWithProducts = await Promise.all(
@@ -146,6 +256,7 @@ export const Home = () => {
       <SEO
         title={seoData.title}
         description={seoData.description}
+        keywords={seoData.keywords}
         url={searchQuery ? `/?q=${encodeURIComponent(searchQuery)}` : "/"}
       />
 
@@ -167,7 +278,7 @@ export const Home = () => {
              {searchResults.length > 0 ? (
                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-4">
                      {searchResults.map((parcel) => (
-                         <MemoizedParcelCard key={parcel.id} parcel={parcel} />
+                         <ParcelCard key={parcel.id} parcel={parcel} />
                      ))}
                  </div>
              ) : (
@@ -224,37 +335,39 @@ export const Home = () => {
               </div>
             </section>
 
-            {/* 2. FEATURED SECTION */}
-            {featuredParcels.length > 0 && (
-              <section className="py-4 md:py-6">
+            {/* 2. SEASONAL FEATURED SECTION */}
+            {(seasonalParcels.length > 0 || featuredParcels.length > 0) && (
+              <section className="py-4 md:py-6" aria-label="Featured Products">
                  <div className="container mx-auto px-4">
                     {/* Modern Soft Pink Container */}
                     <div className="relative bg-gradient-to-br from-pink-50 via-rose-50/50 to-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border border-pink-100/50 overflow-hidden">
 
                        <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2.5">
-                             <div className="bg-gradient-to-br from-pink-500 to-rose-500 p-2 md:p-2.5 rounded-xl shadow-md">
+                             <div className={`bg-gradient-to-br ${seasonConfig.gradient} p-2 md:p-2.5 rounded-xl shadow-md`}>
                                <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-white" />
                              </div>
                              <div>
                                 <h2 className="text-sm md:text-xl font-bold text-slate-800">
-                                  Koleksi Parcel Cirebon Terlaris
+                                  {seasonConfig.emoji} {seasonConfig.title}
                                 </h2>
-                                <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">Produk paling diminati</p>
+                                <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">
+                                  {currentSeason !== 'general' ? 'Spesial musim ini' : 'Produk paling diminati'}
+                                </p>
                              </div>
                           </div>
                           <div className="flex items-center gap-1 text-[10px] md:text-xs font-semibold text-rose-600 bg-white/80 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-pink-200/50 shadow-sm">
-                             <span>🔥</span>
-                             <span className="hidden sm:inline">Trending</span>
+                             <span>{currentSeason !== 'general' ? seasonConfig.emoji : '🔥'}</span>
+                             <span className="hidden sm:inline">{currentSeason !== 'general' ? 'Seasonal' : 'Trending'}</span>
                           </div>
                        </div>
 
                        <div className="relative -mx-4 md:-mx-6 px-4 md:px-6">
                           <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
                           {loading ? [1,2,3,4].map(i => <ParcelSkeleton key={i} />) : (
-                             featuredParcels.map((parcel) => (
+                             (seasonalParcels.length > 0 ? seasonalParcels : featuredParcels).map((parcel) => (
                                 <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
-                                   <MemoizedParcelCard parcel={{
+                                   <ParcelCard parcel={{
                                       ...parcel,
                                       image_url: getOptimizedImage(parcel.image_url, 400)
                                    }} />
@@ -289,7 +402,7 @@ export const Home = () => {
                           <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
                             {category.parcels?.map((parcel: any) => (
                                 <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
-                                    <MemoizedParcelCard parcel={{
+                                    <ParcelCard parcel={{
                                         ...parcel,
                                         image_url: getOptimizedImage(parcel.image_url, 400)
                                     }} />

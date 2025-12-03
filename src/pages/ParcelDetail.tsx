@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { SEO } from '@/components/SEO';
@@ -6,6 +6,7 @@ import { ParcelCard } from '@/components/ParcelCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { getOptimizedImage } from '@/utils/imageOptimizer';
 import { 
   MessageCircle, 
   Heart, 
@@ -24,6 +25,9 @@ import {
   Copy,
 } from 'lucide-react';
 import { createWhatsAppUrl } from '@/constants/whatsapp';
+
+// SEO Keywords for product pages
+const PRODUCT_SEO_KEYWORDS = "parcel cirebon, hampers cirebon, jual parcel, toko parcel cirebon, beli parcel online, lipink parcel";
 
 // --- INTERFACES ---
 interface Category {
@@ -218,11 +222,11 @@ export const ParcelDetail = () => {
     fetchData();
   }, [categorySlug, parcelSlug]);
 
-  // --- 4. STRUCTURED DATA GENERATION (SEO FIX) ---
-  const getStructuredData = () => {
+  // --- 4. MEMOIZED STRUCTURED DATA GENERATION (SEO) ---
+  const structuredData = useMemo(() => {
     if (!parcel) return null;
 
-    const siteUrl = window.location.origin;
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.parcelcirebon.com';
     const productUrl = `${siteUrl}/produk/${parcel.category.slug}/${parcel.slug}`;
     // Ensure image is absolute URL for schema
     const imageUrl = parcel.image_url.startsWith('http') 
@@ -262,7 +266,7 @@ export const ParcelDetail = () => {
         "bestRating": "5",
         "worstRating": "1"
       },
-      "review": reviews.map(review => ({
+      "review": reviews.slice(0, 3).map(review => ({
         "@type": "Review",
         "reviewRating": {
           "@type": "Rating",
@@ -276,7 +280,7 @@ export const ParcelDetail = () => {
         "reviewBody": review.comment
       }))
     };
-  };
+  }, [parcel, averageRating, totalReviews, reviews]);
 
   // --- HELPERS & HANDLERS ---
   
@@ -291,14 +295,15 @@ export const ParcelDetail = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const formatPrice = (price: number) => {
+  // Memoized price formatter
+  const formatPrice = useCallback((price: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price).replace("Rp", "Rp");
-  };
+  }, []);
 
   const handleWhatsAppOrder = () => {
     if (!parcel) return;
@@ -365,13 +370,14 @@ export const ParcelDetail = () => {
     <>
       {/* --- SEO COMPONENT INTEGRATION --- */}
       <SEO
-        title={`${parcel.name} | Lipink Parcel Cirebon`}
-        description={parcel.description}
-        // FIX: Pass image prop directly for Open Graph
+        title={`Jual ${parcel.name} Cirebon - Harga ${formatPrice(parcel.price)} | Lipink Parcel`}
+        description={`Beli ${parcel.name} di Lipink Parcel Cirebon. ${parcel.description?.slice(0, 120)}... ✓ Kualitas Premium ✓ Harga Terjangkau ✓ Pengiriman Cirebon`}
+        keywords={`${parcel.name}, ${parcel.category.name}, ${PRODUCT_SEO_KEYWORDS}`}
         image={parcel.image_url}
         url={`/produk/${parcel.category.slug}/${parcel.slug}`}
+        canonical={`https://www.parcelcirebon.com/produk/${parcel.category.slug}/${parcel.slug}`}
         type="product"
-        structuredData={getStructuredData()} // FIX: Pass the generated JSON-LD
+        structuredData={structuredData}
       />
 
       <div className="min-h-screen bg-[#F5F5F5] pb-24 md:pb-12 font-sans">
@@ -395,8 +401,12 @@ export const ParcelDetail = () => {
                <div className="bg-white md:rounded-2xl overflow-hidden sticky top-24 shadow-sm border border-slate-100">
                   <div className="aspect-square relative group cursor-zoom-in bg-slate-50">
                      <img 
-                        src={parcel.image_url} 
-                        alt={parcel.name} 
+                        src={getOptimizedImage(parcel.image_url, 600)} 
+                        alt={`${parcel.name} - ${parcel.category.name} Cirebon`}
+                        loading="eager"
+                        fetchPriority="high"
+                        width={600}
+                        height={600}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                      />
                      <div className="absolute bottom-4 left-4 flex gap-2">
@@ -606,16 +616,19 @@ export const ParcelDetail = () => {
 
           {/* === RELATED PRODUCTS === */}
           {relatedProducts.length > 0 && (
-             <div className="mt-8 mb-24 md:mb-8">
+             <section className="mt-8 mb-24 md:mb-8" aria-label="Related Products">
                  <h2 className="text-xl font-bold text-slate-900 mb-4 px-4 md:px-0">Mungkin Kamu Suka</h2>
                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4 px-4 md:px-0">
                      {relatedProducts.map((product) => (
-                         <div key={product.id} className="h-full">
-                             <ParcelCard parcel={product} />
-                         </div>
+                         <article key={product.id} className="h-full">
+                             <ParcelCard parcel={{
+                               ...product,
+                               image_url: getOptimizedImage(product.image_url, 300)
+                             }} />
+                         </article>
                      ))}
                  </div>
-             </div>
+             </section>
           )}
 
         </div>

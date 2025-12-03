@@ -3,12 +3,55 @@
 
   <url>
     <loc>https://www.parcelcirebon.com/</loc>
-    <lastmod>2025-11-25</lastmod>
+    <lastmod>2025-12-03</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
+  <!-- Blog Pages -->
   <url>
+    <loc>https://www.parcelcirebon.com/blog</loc>
+    <lastmod>2025-12-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://www.parcelcirebon.com/blog/parcel-terbaik-cirebon</loc>
+    <lastmod>2025-12-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.parcelcirebon.com/blog/tips-memilih-parcel-lebaran</loc>
+    <lastmod>2025-03-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.parcelcirebon.com/blog/parcel-natal-untuk-kerabat</loc>
+    <lastmod>2025-12-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.parcelcirebon.com/blog/tradisi-parcel-imlek</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://www.parcelcirebon.com/blog/panduan-kirim-parcel-cirebon</loc>
+    <lastmod>2025-02-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Category Pages -->
     <loc>https://www.parcelcirebon.com/produk/hampers-imlek</loc>
     <lastmod>2025-11-25</lastmod>
     <changefreq>weekly</changefreq>
