@@ -11,10 +11,12 @@ import {
   Truck,
   Sparkles,
   ExternalLink,
-  ArrowRight
+  ArrowRight,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Link } from "react-router-dom";
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -186,6 +188,16 @@ export const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-slate-500 text-xs text-center md:text-left">
             © {currentYear} <strong>Lipink Parcel Cirebon</strong>. All Rights Reserved.
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Link 
+              to="/return-policy" 
+              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-pink-600 transition-colors"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Kebijakan Pengembalian</span>
+            </Link>
           </div>
           
           <div className="flex items-center gap-4 opacity-60">

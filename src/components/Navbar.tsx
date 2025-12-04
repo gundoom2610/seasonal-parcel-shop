@@ -14,6 +14,7 @@ import {
   BookOpen
 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { trackSearch } from '@/utils/analytics';
 
 // --- 1. CACHE MANAGER (Performance Optimization) ---
 const CACHE_CONFIG = {
@@ -172,6 +173,7 @@ export const Navbar = () => {
     e.preventDefault();
     setMobileMenuOpen(false);
     if (searchQuery.trim()) {
+      trackSearch(searchQuery.trim());
       navigate(`/?q=${encodeURIComponent(searchQuery)}`);
     } else {
       navigate('/');

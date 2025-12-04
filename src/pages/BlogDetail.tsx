@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useParams, Link, useNavigate } from "react-router-dom"
 import { SEO } from "@/components/SEO"
 import { Footer } from "@/components/Footer"
@@ -362,6 +363,11 @@ export const BlogDetail = () => {
   const post = slug ? getBlogBySlug(slug) : undefined;
   const relatedPosts = slug ? getRelatedPosts(slug, 2) : [];
   const content = slug ? blogContent[slug] : undefined;
+
+  // Scroll to top when slug changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [slug]);
 
   if (!post || !content) {
     return (

@@ -2,11 +2,13 @@ import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } fro
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { SEO } from '@/components/SEO';
+import { Footer } from '@/components/Footer';
 import { ParcelCard } from '@/components/ParcelCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { getOptimizedImage } from '@/utils/imageOptimizer';
+import { trackViewItem, trackBeginCheckout, trackShare, trackWhatsAppClick } from '@/utils/analytics';
 import { 
   MessageCircle, 
   Heart, 
@@ -202,6 +204,14 @@ export const ParcelDetail = () => {
             setParcel(parcelData);
             generateRandomReviews();
 
+            // Track product view in GA4
+            trackViewItem({
+              id: parcelData.id,
+              name: parcelData.name,
+              category: parcelData.category.name,
+              price: parcelData.price,
+            });
+
             const { data: relatedData } = await supabase
               .from('parcels')
               .select(`*, category:categories(id, name, slug)`)
@@ -307,6 +317,17 @@ export const ParcelDetail = () => {
 
   const handleWhatsAppOrder = () => {
     if (!parcel) return;
+    
+    // Track checkout event in GA4
+    trackBeginCheckout({
+      id: parcel.id,
+      name: parcel.name,
+      category: parcel.category.name,
+      price: parcel.price,
+      quantity: quantity,
+    });
+    trackWhatsAppClick('product_page', parcel.name);
+    
     const currentUrl = window.location.href;
     const message = `Halo Admin Lipink Parcel 👋\n\nSaya ingin memesan produk ini:\n\n🛍️ *${parcel.name}*\n💰 Harga: ${formatPrice(parcel.price)}\n📦 Jumlah: ${quantity} pcs\n\n🔗 Link Produk: ${currentUrl}\n\nMohon info stok dan total ongkir ke alamat saya ya. Terima kasih!`;
     const whatsappUrl = createWhatsAppUrl(message, parcel.image_url); 
@@ -322,6 +343,8 @@ export const ParcelDetail = () => {
           text: `Cek produk ini: ${parcel.name} hanya ${formatPrice(parcel.price)} di Lipink Parcel!`,
           url: window.location.href,
         });
+        // Track share event
+        trackShare('native_share', 'product', parcel.id);
       } catch (err) {
         console.log('Error sharing:', err);
       }
@@ -332,6 +355,8 @@ export const ParcelDetail = () => {
 
   const shareToWhatsApp = () => {
     if (!parcel) return;
+    // Track share event
+    trackShare('whatsapp', 'product', parcel.id);
     const text = `Lihat produk ini deh: *${parcel.name}*\nHarga: ${formatPrice(parcel.price)}\nLink: ${window.location.href}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -650,6 +675,8 @@ export const ParcelDetail = () => {
         </div>
 
       </div>
+
+      <Footer />
     </>
   );
 };

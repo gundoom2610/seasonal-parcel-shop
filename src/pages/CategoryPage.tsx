@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { SEO } from "@/components/SEO"
 import { ParcelCard } from "@/components/ParcelCard"
 import { getOptimizedImage } from "@/utils/imageOptimizer"
+import { trackEvent } from "@/utils/analytics"
 
 // Lazy load Footer for better initial load
 const Footer = lazy(() => import("@/components/Footer").then(m => ({ default: m.Footer })))
@@ -321,6 +322,17 @@ export const CategoryPage = () => {
       })
     }
   }, [categorySlug])
+
+  // Track category view
+  useEffect(() => {
+    if (category && dataLoaded) {
+      trackEvent('view_item_list', {
+        item_list_id: category.id,
+        item_list_name: category.name,
+        items_count: parcels.length,
+      })
+    }
+  }, [category, dataLoaded, parcels.length])
 
   // Loading skeleton for initial page load
   if (loading) {

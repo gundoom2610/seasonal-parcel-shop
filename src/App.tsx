@@ -13,6 +13,7 @@ import { CategoryPage } from "@/pages/CategoryPage";
 import { ParcelDetail } from "@/pages/ParcelDetail";
 import { BlogList } from "@/pages/BlogList";
 import { BlogDetail } from "@/pages/BlogDetail";
+import { ReturnPolicy } from "@/pages/ReturnPolicy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/produk/:categorySlug/:parcelSlug" element={<ParcelDetail />} />
               <Route path="/blog" element={<BlogList />} />
               <Route path="/blog/:slug" element={<BlogDetail />} />
+              <Route path="/return-policy" element={<ReturnPolicy />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

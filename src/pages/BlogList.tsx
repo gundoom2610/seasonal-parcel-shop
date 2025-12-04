@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { Link } from "react-router-dom"
 import { SEO } from "@/components/SEO"
 import { Footer } from "@/components/Footer"
@@ -12,6 +13,11 @@ const SEO_CONFIG = {
 }
 
 export const BlogList = () => {
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <>
       <SEO
