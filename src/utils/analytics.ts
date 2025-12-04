@@ -8,12 +8,17 @@ declare global {
   }
 }
 
+// Check if gtag is available
+const isGtagAvailable = (): boolean => {
+  return typeof window !== 'undefined' && typeof window.gtag === 'function';
+};
+
 // Generic event tracking function
 export const trackEvent = (
   eventName: string,
   parameters?: Record<string, any>
 ) => {
-  if (typeof window !== 'undefined' && window.gtag) {
+  if (isGtagAvailable()) {
     window.gtag('event', eventName, parameters);
   }
 };

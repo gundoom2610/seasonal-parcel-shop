@@ -429,7 +429,8 @@ export const ParcelDetail = () => {
                         src={getOptimizedImage(parcel.image_url, 600)} 
                         alt={`${parcel.name} - ${parcel.category.name} Cirebon`}
                         loading="eager"
-                        fetchPriority="high"
+                        // @ts-ignore
+                        fetchpriority="high"
                         width={600}
                         height={600}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

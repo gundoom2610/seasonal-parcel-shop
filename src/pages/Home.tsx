@@ -325,7 +325,8 @@ export const Home = () => {
                      <img 
                         src="/hero-image.avif" 
                         alt="Parcel Cirebon Terbaik" 
-                        fetchPriority="high"
+                        // @ts-ignore
+                        fetchpriority="high"
                         width="450"
                         height="450"
                         className="h-full w-auto object-cover object-center md:h-auto md:w-96 md:object-contain md:translate-y-6" 
