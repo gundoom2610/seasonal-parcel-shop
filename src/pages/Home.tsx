@@ -382,6 +382,30 @@ export const Home = () => {
               </section>
             )}
 
+            {/* STATIC SEO CONTENT - Keywords matching H1 for crawlers */}
+            <section className="container mx-auto px-4 py-6 bg-white rounded-xl border border-slate-100 my-4">
+              <h2 className="text-lg font-bold text-slate-800 mb-3">Parcel Terbaik Cirebon untuk Silaturahmi Keluarga</h2>
+              <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                Lipink Parcel menyediakan parcel terbaik di Cirebon untuk momen silaturahmi keluarga Anda.
+                Dengan pengalaman lebih dari 6 tahun, kami menghadirkan hampers berkualitas premium untuk
+                Lebaran, Natal, dan Imlek. Pilih parcel Cirebon terbaik dengan harga mulai Rp50.000.
+                Gratis ongkir untuk pengiriman area Cirebon!
+              </p>
+              <nav className="flex flex-wrap justify-center gap-3 text-sm border-t border-slate-100 pt-4">
+                <Link to="/produk/parcel-lebaran" className="text-pink-600 hover:text-pink-700 font-medium">Parcel Lebaran</Link>
+                <span className="text-slate-300">|</span>
+                <Link to="/produk/parcel-natal" className="text-pink-600 hover:text-pink-700 font-medium">Parcel Natal</Link>
+                <span className="text-slate-300">|</span>
+                <Link to="/produk/parcel-imlek" className="text-pink-600 hover:text-pink-700 font-medium">Parcel Imlek</Link>
+                <span className="text-slate-300">|</span>
+                <Link to="/produk/hampers-imlek" className="text-pink-600 hover:text-pink-700 font-medium">Hampers Imlek</Link>
+                <span className="text-slate-300">|</span>
+                <Link to="/blog" className="text-purple-600 hover:text-purple-700 font-medium">Blog</Link>
+                <span className="text-slate-300">|</span>
+                <Link to="/return-policy" className="text-slate-600 hover:text-slate-700 font-medium">Kebijakan Pengembalian</Link>
+              </nav>
+            </section>
+
             {/* 3. CATEGORY FEEDS */}
             <div id="catalog" className="container mx-auto px-4 space-y-3 md:space-y-4 pb-8 pt-2">
                 {categoriesWithParcels.map((category, index) => (

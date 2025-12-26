@@ -59,9 +59,18 @@ class CacheManager {
   static clear() { try { localStorage.removeItem(this.getCacheKey()); } catch (error) {} }
 }
 
+// --- STATIC FALLBACK CATEGORIES (For SEO/SSR) ---
+const STATIC_CATEGORIES = [
+  { id: 'static-1', name: 'Parcel Lebaran', slug: 'parcel-lebaran' },
+  { id: 'static-2', name: 'Parcel Natal', slug: 'parcel-natal' },
+  { id: 'static-3', name: 'Parcel Imlek', slug: 'parcel-imlek' },
+  { id: 'static-4', name: 'Hampers Imlek', slug: 'hampers-imlek' },
+];
+
 // --- 2. DATA HOOK ---
 const useCategories = () => {
-  const [categories, setCategories] = useState<any[]>([]);
+  // Start with static categories for SSR
+  const [categories, setCategories] = useState<any[]>(STATIC_CATEGORIES);
   const [loading, setLoading] = useState(true);
   const fetchingRef = useRef(false);
   const mountedRef = useRef(true);
@@ -122,8 +131,8 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams(); 
   
-  // DATA FETCHING (Enabled)
-  const { categories, loading } = useCategories();
+  // DATA FETCHING (Static categories shown first, then replaced with DB data)
+  const { categories } = useCategories();
 
   // UI STATES
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -180,16 +189,6 @@ export const Navbar = () => {
     }
   };
 
-  // --- RENDER HELPERS ---
-
-  const CategorySkeleton = () => (
-    <div className="flex gap-4 animate-pulse">
-      <div className="h-4 w-16 bg-slate-200 rounded" />
-      <div className="h-4 w-20 bg-slate-200 rounded" />
-      <div className="h-4 w-14 bg-slate-200 rounded" />
-    </div>
-  );
-
   return (
     <>
       <nav 
@@ -243,11 +242,9 @@ export const Navbar = () => {
 
             {/* 3. DESKTOP CATEGORIES (Horizontal List) */}
             <div className="hidden md:flex items-center gap-1">
-              {loading ? (
-                <CategorySkeleton />
-              ) : (
-                <>
-                  {visibleCategories.map((category: any) => (
+              {/* Always show categories (static fallback for SSR, then replaced with DB data) */}
+              <>
+                {visibleCategories.map((category: any) => (
                     <Link
                       key={category.id}
                       to={`/produk/${category.slug}`}
@@ -303,7 +300,6 @@ export const Navbar = () => {
                     Blog
                   </Link>
                 </>
-              )}
             </div>
 
             {/* 4. MOBILE HAMBURGER */}
@@ -337,30 +333,23 @@ export const Navbar = () => {
         <div className="md:hidden fixed inset-0 top-[120px] z-40 bg-white/95 backdrop-blur-sm border-t border-slate-100 overflow-y-auto animate-in slide-in-from-top-5 duration-200">
           <div className="p-4 pb-20 space-y-6">
             
-            {/* 1. Categories Grid */}
+            {/* 1. Categories Grid - Always show (static fallback for SSR) */}
             <div>
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 px-1">Kategori Produk</h3>
-               
-               {loading ? (
-                  <div className="grid grid-cols-2 gap-3">
-                     {[1,2,3,4].map(i => <div key={i} className="h-12 bg-slate-100 rounded-xl animate-pulse" />)}
-                  </div>
-               ) : (
-                 <div className="grid grid-cols-2 gap-3">
-                    {categories.map((category: any) => (
-                       <Link
-                         key={category.id}
-                         to={`/produk/${category.slug}`}
-                         className="flex items-center justify-center px-4 py-3 bg-slate-50 hover:bg-pink-50 border border-slate-100 hover:border-pink-200 rounded-xl transition-all active:scale-95"
-                         onClick={() => setMobileMenuOpen(false)}
-                       >
-                         <span className="text-sm font-medium text-slate-700 text-center line-clamp-1">
-                           {category.name}
-                         </span>
-                       </Link>
-                    ))}
-                 </div>
-               )}
+               <div className="grid grid-cols-2 gap-3">
+                  {categories.map((category: any) => (
+                     <Link
+                       key={category.id}
+                       to={`/produk/${category.slug}`}
+                       className="flex items-center justify-center px-4 py-3 bg-slate-50 hover:bg-pink-50 border border-slate-100 hover:border-pink-200 rounded-xl transition-all active:scale-95"
+                       onClick={() => setMobileMenuOpen(false)}
+                     >
+                       <span className="text-sm font-medium text-slate-700 text-center line-clamp-1">
+                         {category.name}
+                       </span>
+                     </Link>
+                  ))}
+               </div>
             </div>
 
             {/* 2. Blog Link */}
