@@ -47,6 +47,7 @@ export const Admin = () => {
         title="Admin Panel - Lipink Parcels"
         description="Manage categories and parcels for Lipink parcels e-commerce site."
         url="/admin"
+        noindex={true}
       />
       
       <div className="container mx-auto px-4 py-8">

@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
+import { vitePrerenderPlugin } from "vite-prerender-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -31,6 +32,17 @@ export default defineConfig(({ mode }) => ({
     react(),
     // Only use componentTagger in development
     mode === 'development' && componentTagger(),
+    // Prerender plugin for SEO - only in production build
+    mode === 'production' && vitePrerenderPlugin({
+      renderTarget: '#root',
+      prerenderScript: path.resolve(__dirname, 'src/prerender.tsx'),
+      // Static routes to prerender (dynamic routes are discovered via link crawling)
+      additionalPrerenderRoutes: [
+        '/',
+        '/blog',
+        '/return-policy',
+      ],
+    }),
   ].filter(Boolean),
   
   resolve: {

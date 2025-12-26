@@ -89,6 +89,7 @@ export const Auth = () => {
         title="Login - Lipink Parcel"
         description="Sign in to your account to access admin features and manage your seasonal parcel orders."
         url="/auth"
+        noindex={true}
       />
       
       <div className="container mx-auto px-4 py-8 max-w-md">
