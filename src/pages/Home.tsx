@@ -359,22 +359,15 @@ export const Home = () => {
                     { name: 'Parcel Natal', slug: 'parcel-natal', emoji: '🎄', image: '/natal.png', overlay: 'from-blue-600/80 to-sky-500/80', border: 'border-blue-200', desc: 'Cookies, cokelat & hampers' },
                     { name: 'Parcel Imlek', slug: 'parcel-imlek', emoji: '🧧', image: '/parcel-imlek.png', overlay: 'from-red-600/80 to-amber-500/80', border: 'border-red-200', desc: 'Kue keranjang & jeruk' },
                     { name: 'Hampers Imlek', slug: 'hampers-imlek', emoji: '🏮', image: '/parcel-imlek.png', overlay: 'from-rose-600/80 to-orange-500/80', border: 'border-rose-200', desc: 'Hampers premium Imlek' },
-                  ].map((cat) => {
-                    // Get dynamic image from fetched data if available
-                    const dynamicCategory = categoriesWithParcels.find(c => c.slug === cat.slug);
-                    const dynamicImage = dynamicCategory?.parcels?.[0]?.image_url;
-                    const imageUrl = dynamicImage ? getOptimizedImage(dynamicImage, 400) : cat.image;
-                    const productCount = dynamicCategory?.parcels?.length || 0;
-
-                    return (
+                  ].map((cat) => (
                       <Link
                         key={cat.slug}
                         to={`/produk/${cat.slug}`}
                         className={`group relative aspect-[4/3] md:aspect-[3/2] rounded-xl md:rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 ${cat.border}`}
                       >
-                        {/* Background Image */}
+                        {/* Background Image - Static for SEO */}
                         <img
-                          src={imageUrl}
+                          src={cat.image}
                           alt={`${cat.name} Cirebon - Lipink Parcel`}
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           loading="lazy"
@@ -391,9 +384,6 @@ export const Home = () => {
                           <span className="text-3xl md:text-4xl mb-2 drop-shadow-lg">{cat.emoji}</span>
                           <h3 className="text-white font-bold text-sm md:text-lg drop-shadow-lg">{cat.name}</h3>
                           <p className="text-white/90 text-[10px] md:text-xs mt-1">{cat.desc}</p>
-                          {productCount > 0 && (
-                            <p className="text-white/70 text-[9px] md:text-[10px] mt-0.5">{productCount} produk</p>
-                          )}
 
                           {/* Hover indicator */}
                           <div className="mt-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[10px] md:text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
@@ -401,14 +391,59 @@ export const Home = () => {
                           </div>
                         </div>
                       </Link>
-                    );
-                  })}
+                  ))}
                 </div>
               </div>
             </section>
 
-            {/* 3. STATIC SEO CONTENT - Rich text for crawlers (BEFORE dynamic products) */}
-            <div className="container mx-auto px-4 space-y-6 mb-6">
+            {/* 3. SEASONAL FEATURED SECTION (Dynamic - loads after fetch) */}
+            {(seasonalParcels.length > 0 || featuredParcels.length > 0) && (
+              <section className="py-4 md:py-6" aria-label="Featured Products">
+                 <div className="container mx-auto px-4">
+                    {/* Modern Soft Pink Container */}
+                    <div className="relative bg-gradient-to-br from-pink-50 via-rose-50/50 to-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border border-pink-100/50 overflow-hidden">
+
+                       <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2.5">
+                             <div className={`bg-gradient-to-br ${seasonConfig.gradient} p-2 md:p-2.5 rounded-xl shadow-md`}>
+                               <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                             </div>
+                             <div>
+                                <h2 className="text-sm md:text-xl font-bold text-slate-800">
+                                  {seasonConfig.emoji} {seasonConfig.title}
+                                </h2>
+                                <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">
+                                  {currentSeason !== 'general' ? 'Spesial musim ini' : 'Produk paling diminati'}
+                                </p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-[10px] md:text-xs font-semibold text-rose-600 bg-white/80 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-pink-200/50 shadow-sm">
+                             <span>{currentSeason !== 'general' ? seasonConfig.emoji : '🔥'}</span>
+                             <span className="hidden sm:inline">{currentSeason !== 'general' ? 'Seasonal' : 'Trending'}</span>
+                          </div>
+                       </div>
+
+                       <div className="relative -mx-4 md:-mx-6 px-4 md:px-6">
+                          <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
+                          {loading ? [1,2,3,4].map(i => <ParcelSkeleton key={i} />) : (
+                             (seasonalParcels.length > 0 ? seasonalParcels : featuredParcels).map((parcel) => (
+                                <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
+                                   <ParcelCard parcel={{
+                                      ...parcel,
+                                      image_url: getOptimizedImage(parcel.image_url, 400)
+                                   }} />
+                                </div>
+                             ))
+                          )}
+                          </div>
+                       </div>
+                    </div>
+                 </div>
+              </section>
+            )}
+
+            {/* STATIC SEO CONTENT - Rich text for crawlers (after products for better UX) */}
+            <div className="container mx-auto px-4 space-y-6 my-6">
               {/* About Section */}
               <section className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-6 md:p-8 border border-pink-100">
                 <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-4">Toko Parcel & Hampers Terbaik di Cirebon</h2>
@@ -543,56 +578,7 @@ export const Home = () => {
                   </div>
                 </div>
               </section>
-            </div>
 
-            {/* 4. SEASONAL FEATURED SECTION (Dynamic - loads after fetch) */}
-            {(seasonalParcels.length > 0 || featuredParcels.length > 0) && (
-              <section className="py-4 md:py-6" aria-label="Featured Products">
-                 <div className="container mx-auto px-4">
-                    {/* Modern Soft Pink Container */}
-                    <div className="relative bg-gradient-to-br from-pink-50 via-rose-50/50 to-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border border-pink-100/50 overflow-hidden">
-
-                       <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2.5">
-                             <div className={`bg-gradient-to-br ${seasonConfig.gradient} p-2 md:p-2.5 rounded-xl shadow-md`}>
-                               <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                             </div>
-                             <div>
-                                <h2 className="text-sm md:text-xl font-bold text-slate-800">
-                                  {seasonConfig.emoji} {seasonConfig.title}
-                                </h2>
-                                <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">
-                                  {currentSeason !== 'general' ? 'Spesial musim ini' : 'Produk paling diminati'}
-                                </p>
-                             </div>
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] md:text-xs font-semibold text-rose-600 bg-white/80 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-pink-200/50 shadow-sm">
-                             <span>{currentSeason !== 'general' ? seasonConfig.emoji : '🔥'}</span>
-                             <span className="hidden sm:inline">{currentSeason !== 'general' ? 'Seasonal' : 'Trending'}</span>
-                          </div>
-                       </div>
-
-                       <div className="relative -mx-4 md:-mx-6 px-4 md:px-6">
-                          <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
-                          {loading ? [1,2,3,4].map(i => <ParcelSkeleton key={i} />) : (
-                             (seasonalParcels.length > 0 ? seasonalParcels : featuredParcels).map((parcel) => (
-                                <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
-                                   <ParcelCard parcel={{
-                                      ...parcel,
-                                      image_url: getOptimizedImage(parcel.image_url, 400)
-                                   }} />
-                                </div>
-                             ))
-                          )}
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-              </section>
-            )}
-
-            {/* FAQ, Location & Footer SEO Content - After products */}
-            <div className="container mx-auto px-4 space-y-6 my-6">
               {/* FAQ Section - Modern Accordion Style */}
               <section className="bg-white rounded-2xl p-6 md:p-8 border border-slate-100 shadow-sm">
                 <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-6">Pertanyaan Umum Seputar Parcel Cirebon</h3>
