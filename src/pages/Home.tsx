@@ -69,17 +69,17 @@ const SEASONAL_CONFIG: Record<SeasonType, SeasonConfig> = {
 // Get current season based on month
 const getCurrentSeason = (): SeasonType => {
   const month = new Date().getMonth() + 1; // 1-12
-  
+
   // January - February: Imlek season
   if (month >= 1 && month <= 2) return 'imlek';
-  
+
   // February - March (overlaps with Imlek end): Lebaran prep
   // March - April: Lebaran (typically Ramadan ends March/April)
   if (month >= 2 && month <= 4) return 'lebaran';
-  
+
   // December: Natal season
   if (month === 12) return 'natal';
-  
+
   // Default for other months
   return 'general';
 };
@@ -89,7 +89,7 @@ const SEO_CONFIG = {
   business: {
     name: "Lipink Parcel Cirebon",
     description: "Pusat Parcel & Hampers Terlengkap di Cirebon.",
-    tagline: "Parcel Terbaik Cirebon Untuk Silaturahmi Keluarga", 
+    tagline: "Parcel Terbaik Cirebon Untuk Silaturahmi Keluarga",
   },
 }
 
@@ -110,20 +110,31 @@ const getCategoryEmoji = (name: string) => {
 
 // --- OPTIMIZED SKELETON ---
 const ParcelSkeleton = () => (
-  <div className="w-[145px] md:w-[210px] h-[260px] md:h-[320px] bg-slate-100 rounded-lg animate-pulse flex-shrink-0 snap-start border border-slate-200" />
+  <div className="w-[145px] md:w-[210px] h-[260px] md:h-[320px] bg-white rounded-xl flex-shrink-0 snap-start border border-slate-200 shadow-sm overflow-hidden">
+    {/* Image placeholder */}
+    <div className="w-full h-[140px] md:h-[180px] bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse" />
+    {/* Content placeholder */}
+    <div className="p-3 space-y-2">
+      {/* Title */}
+      <div className="h-4 bg-slate-200 rounded-md animate-pulse w-full" />
+      <div className="h-4 bg-slate-200 rounded-md animate-pulse w-2/3" />
+      {/* Price */}
+      <div className="h-5 bg-pink-100 rounded-md animate-pulse w-1/2 mt-3" />
+    </div>
+  </div>
 )
 
 export const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const searchQuery = searchParams.get("q") || ""
-  
+
   const [categoriesWithParcels, setCategoriesWithParcels] = useState<Category[]>([])
   const [featuredParcels, setFeaturedParcels] = useState<Parcel[]>([])
   const [seasonalParcels, setSeasonalParcels] = useState<Parcel[]>([])
   const [searchResults, setSearchResults] = useState<Parcel[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [loading, setLoading] = useState(true)
-  
+
   // Get current season
   const currentSeason = useMemo(() => getCurrentSeason(), [])
   const seasonConfig = SEASONAL_CONFIG[currentSeason]
@@ -131,7 +142,7 @@ export const Home = () => {
   // --- SEO LOGIC ---
   const seoData = useMemo(() => {
     const query = searchQuery.toLowerCase().trim()
-    
+
     // Get seasonal SEO boost
     const seasonalSEO = {
       imlek: { suffix: "Hampers Imlek", desc: "Parcel Imlek premium" },
@@ -139,7 +150,7 @@ export const Home = () => {
       natal: { suffix: "Hampers Natal", desc: "Parcel Natal premium" },
       general: { suffix: "Hampers Premium", desc: "Parcel premium" }
     }[currentSeason]
-    
+
     if (!query) {
       return {
         title: `Parcel Terbaik Cirebon & ${seasonalSEO.suffix} Terlengkap | Lipink`,
@@ -167,7 +178,7 @@ export const Home = () => {
           if (isMounted) setIsSearching(true)
           const { data: matchingCategories } = await supabase.from('categories').select('id').ilike('name', `%${searchQuery}%`)
           let query = supabase.from("parcels").select(`*, category:categories(id, name, slug)`).order("created_at", { ascending: false })
-          
+
           const nameFilter = `name.ilike.%${searchQuery}%`
           let orFilter = nameFilter
           if (matchingCategories && matchingCategories.length > 0) {
@@ -175,15 +186,15 @@ export const Home = () => {
             orFilter += `,category_id.in.(${categoryIds})`
           }
           query = query.or(orFilter)
-          
+
           const { data, error } = await query
           if (error) throw error
-          
+
           if (isMounted) {
             setSearchResults(data || [])
             setLoading(false)
           }
-          return 
+          return
         }
 
         // 2. HOMEPAGE LOGIC
@@ -200,7 +211,7 @@ export const Home = () => {
               .limit(10)
               .order("created_at", { ascending: false })
           }
-          
+
           // Search for seasonal parcels by category name containing keywords
           // First get matching category IDs
           return supabase
@@ -216,7 +227,7 @@ export const Home = () => {
         ]);
 
         if (featuredRes.data && isMounted) setFeaturedParcels(featuredRes.data);
-        
+
         // Fetch seasonal parcels if we found matching categories
         if (currentSeason !== 'general' && seasonalCategoriesRes.data && 'id' in (seasonalCategoriesRes.data[0] || {})) {
           const categoryIds = (seasonalCategoriesRes.data as { id: string }[]).map(c => c.id)
@@ -227,14 +238,14 @@ export const Home = () => {
               .in('category_id', categoryIds)
               .limit(10)
               .order("created_at", { ascending: false })
-            
+
             if (seasonalData && isMounted) setSeasonalParcels(seasonalData)
           }
         } else if (seasonalCategoriesRes.data && isMounted) {
           // For general season, the query already returned parcels
           setSeasonalParcels(seasonalCategoriesRes.data as Parcel[])
         }
-        
+
         if (categoriesRes.data) {
           const catsWithProducts = await Promise.all(
             categoriesRes.data.map(async (category) => {
@@ -270,35 +281,35 @@ export const Home = () => {
       />
 
       <main className="min-h-screen bg-slate-50 font-sans pb-24 overflow-x-hidden">
-        
+
         {isSearching ? (
           /* === SEARCH RESULTS === */
           <div className="container mx-auto px-4 pt-4 md:pt-6">
-             <div className="bg-white/90 backdrop-blur-sm p-3 md:p-4 rounded-xl md:rounded-2xl shadow-sm mb-4 flex justify-between items-center sticky top-16 z-40 border border-slate-100/80">
-                 <h1 className="text-sm md:text-lg font-bold text-slate-800 flex items-center gap-2">
-                     <div className="p-1.5 bg-pink-100 rounded-lg">
-                        <Search className="w-4 h-4 text-pink-600" />
-                     </div>
-                     <span>Hasil: <span className="text-pink-600">"{searchQuery}"</span></span>
-                 </h1>
-                 <Button onClick={() => setSearchParams({})} variant="ghost" size="sm" className="text-xs text-slate-500 h-8 hover:bg-slate-100 rounded-lg">Reset</Button>
-             </div>
+            <div className="bg-white/90 backdrop-blur-sm p-3 md:p-4 rounded-xl md:rounded-2xl shadow-sm mb-4 flex justify-between items-center sticky top-16 z-40 border border-slate-100/80">
+              <h1 className="text-sm md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                <div className="p-1.5 bg-pink-100 rounded-lg">
+                  <Search className="w-4 h-4 text-pink-600" />
+                </div>
+                <span>Hasil: <span className="text-pink-600">"{searchQuery}"</span></span>
+              </h1>
+              <Button onClick={() => setSearchParams({})} variant="ghost" size="sm" className="text-xs text-slate-500 h-8 hover:bg-slate-100 rounded-lg">Reset</Button>
+            </div>
 
-             {searchResults.length > 0 ? (
-                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-4">
-                     {searchResults.map((parcel) => (
-                         <ParcelCard key={parcel.id} parcel={parcel} />
-                     ))}
-                 </div>
-             ) : (
-                 <div className="flex flex-col items-center justify-center py-16 md:py-20 text-center bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100">
-                     <div className="p-4 bg-slate-50 rounded-full mb-4">
-                        <PackageX className="w-12 h-12 md:w-16 md:h-16 text-slate-300" />
-                     </div>
-                     <p className="text-slate-500 mb-2">Produk tidak ditemukan</p>
-                     <Button onClick={() => setSearchParams({})} variant="link" className="text-pink-600 font-semibold">Lihat Semua Produk</Button>
-                 </div>
-             )}
+            {searchResults.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-4">
+                {searchResults.map((parcel) => (
+                  <ParcelCard key={parcel.id} parcel={parcel} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-16 md:py-20 text-center bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100">
+                <div className="p-4 bg-slate-50 rounded-full mb-4">
+                  <PackageX className="w-12 h-12 md:w-16 md:h-16 text-slate-300" />
+                </div>
+                <p className="text-slate-500 mb-2">Produk tidak ditemukan</p>
+                <Button onClick={() => setSearchParams({})} variant="link" className="text-pink-600 font-semibold">Lihat Semua Produk</Button>
+              </div>
+            )}
           </div>
         ) : (
           /* === HOMEPAGE === */
@@ -307,23 +318,23 @@ export const Home = () => {
             <section className="bg-slate-50 pb-6 pt-4">
               <div className="container mx-auto px-4">
                 <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-pink-600 to-purple-700 min-h-[160px] md:h-[300px] flex items-center shadow-md">
-                  
+
                   {/* Text Content */}
                   <div className="relative z-20 px-4 py-5 md:px-12 md:py-0 w-full md:w-2/3 text-white">
                     <div className="inline-flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold mb-2 border border-white/20">
                       <Sparkles className="w-3 h-3 text-yellow-300" />
                       <span>Official Store</span>
                     </div>
-                    
+
                     <h1 className="text-lg md:text-4xl lg:text-5xl font-extrabold leading-tight mb-2 md:mb-4 pr-20 md:pr-0">
-                      Parcel Terbaik Cirebon <br className="hidden md:block"/> 
+                      Parcel Terbaik Cirebon <br className="hidden md:block" />
                       Untuk Silaturahmi Keluarga
                     </h1>
-                    
+
                     <p className="text-[10px] md:text-base text-pink-100 mb-3 md:mb-4 max-w-xs md:max-w-lg line-clamp-2 md:line-clamp-none">
                       Hampers Lebaran, Natal & Imlek Premium. Kirim kehangatan untuk kerabat.
                     </p>
-                    
+
                     <Button onClick={() => document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white text-pink-700 font-bold rounded-lg px-4 h-8 text-xs md:h-12 md:text-sm shadow-lg hover:bg-pink-50 border-0">
                       Belanja Sekarang
                     </Button>
@@ -331,15 +342,15 @@ export const Home = () => {
 
                   {/* Hero Image - Hidden on small mobile, visible on larger screens */}
                   <div className="absolute right-0 bottom-0 top-0 z-10 w-28 md:w-1/2 flex items-end justify-end pointer-events-none opacity-60 md:opacity-100">
-                     <img 
-                        src="/hero-image.avif" 
-                        alt="Parcel Cirebon Terbaik" 
-                        // @ts-ignore
-                        fetchpriority="high"
-                        width="450"
-                        height="450"
-                        className="h-full w-auto object-cover object-center md:h-auto md:w-96 md:object-contain md:translate-y-6" 
-                     />
+                    <img
+                      src="/hero-image.avif"
+                      alt="Parcel Cirebon Terbaik"
+                      // @ts-ignore
+                      fetchpriority="high"
+                      width="450"
+                      height="450"
+                      className="h-full w-auto object-cover object-center md:h-auto md:w-96 md:object-contain md:translate-y-6"
+                    />
                   </div>
                 </div>
               </div>
@@ -360,87 +371,89 @@ export const Home = () => {
                     { name: 'Parcel Imlek', slug: 'parcel-imlek', emoji: '🧧', image: '/parcel-imlek.png', overlay: 'from-red-600/80 to-amber-500/80', border: 'border-red-200', desc: 'Kue keranjang & jeruk' },
                     { name: 'Hampers Imlek', slug: 'hampers-imlek', emoji: '🏮', image: '/parcel-imlek.png', overlay: 'from-rose-600/80 to-orange-500/80', border: 'border-rose-200', desc: 'Hampers premium Imlek' },
                   ].map((cat) => (
-                      <Link
-                        key={cat.slug}
-                        to={`/produk/${cat.slug}`}
-                        className={`group relative aspect-[4/3] md:aspect-[3/2] rounded-xl md:rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 ${cat.border}`}
-                      >
-                        {/* Background Image - Static for SEO */}
-                        <img
-                          src={cat.image}
-                          alt={`${cat.name} Cirebon - Lipink Parcel`}
-                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          loading="lazy"
-                        />
+                    <Link
+                      key={cat.slug}
+                      to={`/produk/${cat.slug}`}
+                      className={`group relative aspect-[4/3] md:aspect-[3/2] rounded-xl md:rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 ${cat.border}`}
+                    >
+                      {/* Background Image - Static for SEO */}
+                      <img
+                        src={cat.image}
+                        alt={`${cat.name} Cirebon - Lipink Parcel`}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        loading="lazy"
+                      />
 
-                        {/* Glassmorphism Overlay */}
-                        <div className={`absolute inset-0 bg-gradient-to-t ${cat.overlay} backdrop-blur-[2px] group-hover:backdrop-blur-[1px] transition-all`} />
+                      {/* Glassmorphism Overlay */}
+                      <div className={`absolute inset-0 bg-gradient-to-t ${cat.overlay} backdrop-blur-[2px] group-hover:backdrop-blur-[1px] transition-all`} />
 
-                        {/* Glass Card Effect */}
-                        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
+                      {/* Glass Card Effect */}
+                      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                        {/* Content */}
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
-                          <span className="text-3xl md:text-4xl mb-2 drop-shadow-lg">{cat.emoji}</span>
-                          <h3 className="text-white font-bold text-sm md:text-lg drop-shadow-lg">{cat.name}</h3>
-                          <p className="text-white/90 text-[10px] md:text-xs mt-1">{cat.desc}</p>
+                      {/* Content */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
+                        <span className="text-3xl md:text-4xl mb-2 drop-shadow-lg">{cat.emoji}</span>
+                        <h3 className="text-white font-bold text-sm md:text-lg drop-shadow-lg">{cat.name}</h3>
+                        <p className="text-white/90 text-[10px] md:text-xs mt-1">{cat.desc}</p>
 
-                          {/* Hover indicator */}
-                          <div className="mt-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[10px] md:text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                            Lihat Semua <ChevronRight className="w-3 h-3" />
-                          </div>
+                        {/* Hover indicator */}
+                        <div className="mt-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white text-[10px] md:text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                          Lihat Semua <ChevronRight className="w-3 h-3" />
                         </div>
-                      </Link>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               </div>
             </section>
 
             {/* 3. SEASONAL FEATURED SECTION (Dynamic - loads after fetch) */}
-            {(seasonalParcels.length > 0 || featuredParcels.length > 0) && (
-              <section className="py-4 md:py-6" aria-label="Featured Products">
-                 <div className="container mx-auto px-4">
-                    {/* Modern Soft Pink Container */}
-                    <div className="relative bg-gradient-to-br from-pink-50 via-rose-50/50 to-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border border-pink-100/50 overflow-hidden">
+            <section className="py-4 md:py-6" aria-label="Featured Products">
+              <div className="container mx-auto px-4">
+                {/* Modern Soft Pink Container */}
+                <div className="relative bg-gradient-to-br from-pink-50 via-rose-50/50 to-white rounded-2xl md:rounded-3xl p-4 md:p-6 shadow-sm border border-pink-100/50 overflow-hidden">
 
-                       <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2.5">
-                             <div className={`bg-gradient-to-br ${seasonConfig.gradient} p-2 md:p-2.5 rounded-xl shadow-md`}>
-                               <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-white" />
-                             </div>
-                             <div>
-                                <h2 className="text-sm md:text-xl font-bold text-slate-800">
-                                  {seasonConfig.emoji} {seasonConfig.title}
-                                </h2>
-                                <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">
-                                  {currentSeason !== 'general' ? 'Spesial musim ini' : 'Produk paling diminati'}
-                                </p>
-                             </div>
-                          </div>
-                          <div className="flex items-center gap-1 text-[10px] md:text-xs font-semibold text-rose-600 bg-white/80 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-pink-200/50 shadow-sm">
-                             <span>{currentSeason !== 'general' ? seasonConfig.emoji : '🔥'}</span>
-                             <span className="hidden sm:inline">{currentSeason !== 'general' ? 'Seasonal' : 'Trending'}</span>
-                          </div>
-                       </div>
-
-                       <div className="relative -mx-4 md:-mx-6 px-4 md:px-6">
-                          <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
-                          {loading ? [1,2,3,4].map(i => <ParcelSkeleton key={i} />) : (
-                             (seasonalParcels.length > 0 ? seasonalParcels : featuredParcels).map((parcel) => (
-                                <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
-                                   <ParcelCard parcel={{
-                                      ...parcel,
-                                      image_url: getOptimizedImage(parcel.image_url, 400)
-                                   }} />
-                                </div>
-                             ))
-                          )}
-                          </div>
-                       </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className={`bg-gradient-to-br ${seasonConfig.gradient} p-2 md:p-2.5 rounded-xl shadow-md`}>
+                        <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-sm md:text-xl font-bold text-slate-800">
+                          {seasonConfig.emoji} {seasonConfig.title}
+                        </h2>
+                        <p className="text-[10px] md:text-xs text-slate-500 hidden md:block">
+                          {currentSeason !== 'general' ? 'Spesial musim ini' : 'Produk paling diminati'}
+                        </p>
+                      </div>
                     </div>
-                 </div>
-              </section>
-            )}
+                    <div className="flex items-center gap-1 text-[10px] md:text-xs font-semibold text-rose-600 bg-white/80 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-pink-200/50 shadow-sm">
+                      <span>{currentSeason !== 'general' ? seasonConfig.emoji : '🔥'}</span>
+                      <span className="hidden sm:inline">{currentSeason !== 'general' ? 'Seasonal' : 'Trending'}</span>
+                    </div>
+                  </div>
+
+                  <div className="relative -mx-4 md:-mx-6 px-4 md:px-6">
+                    <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
+                      {loading ? (
+                        [1, 2, 3, 4, 5].map(i => <ParcelSkeleton key={i} />)
+                      ) : (seasonalParcels.length > 0 || featuredParcels.length > 0) ? (
+                        (seasonalParcels.length > 0 ? seasonalParcels : featuredParcels).map((parcel) => (
+                          <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
+                            <ParcelCard parcel={{
+                              ...parcel,
+                              image_url: getOptimizedImage(parcel.image_url, 400)
+                            }} />
+                          </div>
+                        ))
+                      ) : (
+                        [1, 2, 3, 4, 5].map(i => <ParcelSkeleton key={i} />)
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
 
             {/* STATIC SEO CONTENT - Rich text for crawlers (after products for better UX) */}
             <div className="container mx-auto px-4 space-y-6 my-6">
@@ -749,45 +762,45 @@ export const Home = () => {
 
             {/* 3. CATEGORY FEEDS */}
             <div id="catalog" className="container mx-auto px-4 space-y-3 md:space-y-4 pb-8 pt-2">
-                {categoriesWithParcels.map((category, index) => (
-                  <section 
-                    key={category.id} 
-                    className={`bg-white py-4 px-4 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 ${index > 1 ? 'content-visibility-auto' : ''}`}
-                  >
-                        <div className="flex items-center justify-between mb-3 md:mb-4">
-                            <h2 className="text-sm md:text-lg font-bold text-slate-800 flex items-center gap-2">
-                               <span className="text-base md:text-xl">{getCategoryEmoji(category.name)}</span> 
-                               {category.name}
-                            </h2>
-                            <Link to={`/produk/${category.slug}`} className="text-pink-600 text-xs md:text-sm font-semibold flex items-center gap-0.5 hover:gap-1.5 transition-all group">
-                               Lihat Semua <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                            </Link>
+              {categoriesWithParcels.map((category, index) => (
+                <section
+                  key={category.id}
+                  className={`bg-white py-4 px-4 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 ${index > 1 ? 'content-visibility-auto' : ''}`}
+                >
+                  <div className="flex items-center justify-between mb-3 md:mb-4">
+                    <h2 className="text-sm md:text-lg font-bold text-slate-800 flex items-center gap-2">
+                      <span className="text-base md:text-xl">{getCategoryEmoji(category.name)}</span>
+                      {category.name}
+                    </h2>
+                    <Link to={`/produk/${category.slug}`} className="text-pink-600 text-xs md:text-sm font-semibold flex items-center gap-0.5 hover:gap-1.5 transition-all group">
+                      Lihat Semua <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </Link>
+                  </div>
+
+                  <div className="relative -mx-4 px-4">
+                    <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
+                      {category.parcels?.map((parcel: any) => (
+                        <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
+                          <ParcelCard parcel={{
+                            ...parcel,
+                            image_url: getOptimizedImage(parcel.image_url, 400)
+                          }} />
                         </div>
-                        
-                        <div className="relative -mx-4 px-4">
-                          <div className="flex overflow-x-auto gap-2.5 md:gap-3 pb-2 snap-x snap-mandatory hide-scrollbar">
-                            {category.parcels?.map((parcel: any) => (
-                                <div key={parcel.id} className="w-[145px] md:w-[210px] flex-shrink-0 snap-start">
-                                    <ParcelCard parcel={{
-                                        ...parcel,
-                                        image_url: getOptimizedImage(parcel.image_url, 400)
-                                    }} />
-                                </div>
-                            ))}
-                          </div>
-                        </div>
-                  </section>
-                ))}
+                      ))}
+                    </div>
+                  </div>
+                </section>
+              ))}
             </div>
           </>
         )}
       </main>
 
       {/* Floating WA Button */}
-      <a 
-        href={createWhatsAppUrl("Halo Admin, saya mau tanya produk parcel...")} 
-        target="_blank" 
-        rel="noreferrer" 
+      <a
+        href={createWhatsAppUrl("Halo Admin, saya mau tanya produk parcel...")}
+        target="_blank"
+        rel="noreferrer"
         className="fixed bottom-20 md:bottom-8 right-4 z-50 bg-[#25D366] hover:bg-[#20bd5a] text-white p-3 md:p-4 rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
         aria-label="Chat WhatsApp"
       >
@@ -796,7 +809,7 @@ export const Home = () => {
       </a>
 
       <Suspense fallback={<div className="h-12 w-full bg-white" />}>
-         <Footer />
+        <Footer />
       </Suspense>
     </>
   )
